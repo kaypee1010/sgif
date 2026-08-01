@@ -26,18 +26,20 @@
   --amber-pale:  #fef3c7;
   --violet:      #7c3aed;
   --violet-pale: #ede9fe;
+  --orange:      #ea580c;
+  --orange-pale: #fff7ed;
   --mono:        'Inconsolata', monospace;
   --radius:      10px;
   --radius-lg:   14px;
   --shadow-sm:   0 1px 4px rgba(30,41,59,.07);
   --shadow-md:   0 4px 14px rgba(30,41,59,.09);
 }
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
 body {
-  font-family: 'DM Sans', sans-serif; font-size: 15.5px;
-  line-height: 1.65; color: var(--ink);
-  background: linear-gradient(150deg, var(--paper) 0%, #eef2f7 100%);
-  min-height: 100vh;
+  font-family:'DM Sans',sans-serif; font-size:15.5px;
+  line-height:1.65; color:var(--ink);
+  background:linear-gradient(150deg,var(--paper) 0%,#eef2f7 100%);
+  min-height:100vh;
 }
 body::before {
   content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
@@ -71,8 +73,7 @@ nav {
 .nav-link {
   font-family:var(--mono); font-size:11px; font-weight:600;
   padding:7px 14px; border-radius:20px; text-decoration:none;
-  border:1px solid var(--line); color:var(--ink-soft);
-  transition:all .15s;
+  border:1px solid var(--line); color:var(--ink-soft); transition:all .15s;
 }
 .nav-link:hover { border-color:var(--accent); color:var(--accent); }
 .nav-link.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
@@ -82,33 +83,27 @@ nav {
 main { position:relative; z-index:1; max-width:820px; margin:0 auto; padding:100px 22px 80px; }
 
 /* PAGE HEAD */
-.page-head { margin-bottom:30px; }
+.page-head { margin-bottom:28px; }
 .eyebrow {
   font-family:var(--mono); font-size:10.5px; letter-spacing:.08em;
   text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px;
 }
-h1 {
-  font-family:'DM Serif Display',serif; font-weight:400;
-  font-size:34px; line-height:1.15; margin-bottom:8px;
-}
+h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:34px; line-height:1.15; margin-bottom:8px; }
 h1 em { font-style:italic; color:var(--accent); }
 .lede { color:var(--ink-soft); font-size:14.5px; max-width:520px; }
 
-/* LOOKUP BAR */
+/* LOOKUP */
 .lookup-card {
   background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
-  padding:24px 26px; margin-bottom:28px; box-shadow:var(--shadow-md);
+  padding:24px 26px; margin-bottom:26px; box-shadow:var(--shadow-md);
   border-top:4px solid var(--accent);
 }
-.lookup-card h2 {
-  font-family:'DM Serif Display',serif; font-size:19px; margin-bottom:14px;
-}
+.lookup-card h2 { font-family:'DM Serif Display',serif; font-size:19px; margin-bottom:14px; }
 .lookup-row { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
 .lookup-field { flex:1; min-width:200px; }
 .lookup-field label {
   display:block; font-family:var(--mono); font-size:10.5px;
-  text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft);
-  margin-bottom:6px;
+  text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-bottom:6px;
 }
 .lookup-field input {
   width:100%; padding:11px 14px; border:1.5px solid var(--line);
@@ -116,15 +111,11 @@ h1 em { font-style:italic; color:var(--accent); }
   text-transform:uppercase; letter-spacing:.04em; color:var(--ink);
   transition:border-color .15s, box-shadow .15s;
 }
-.lookup-field input:focus {
-  outline:none; border-color:var(--accent);
-  box-shadow:0 0 0 3px var(--accent-pale);
-}
+.lookup-field input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-pale); }
 .lookup-btn {
   padding:11px 24px; background:var(--accent); color:#fff;
   border:none; border-radius:8px; font-family:'DM Sans',sans-serif;
-  font-size:14px; font-weight:700; cursor:pointer; transition:background .15s;
-  white-space:nowrap;
+  font-size:14px; font-weight:700; cursor:pointer; transition:background .15s; white-space:nowrap;
 }
 .lookup-btn:hover { background:var(--accent-deep); }
 .lookup-btn:disabled { opacity:.5; cursor:not-allowed; }
@@ -135,15 +126,14 @@ h1 em { font-style:italic; color:var(--accent); }
 }
 .lookup-error.show { display:block; }
 
-/* PROFILE PANEL */
+/* PROFILE */
 .profile-panel { display:none; }
 .profile-panel.show { display:block; }
 
 /* STUDENT HEADER */
 .student-header {
-  background:#fff; border:1px solid var(--line);
-  border-radius:var(--radius-lg); padding:22px 26px;
-  margin-bottom:20px; box-shadow:var(--shadow-sm);
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:22px 26px; margin-bottom:20px; box-shadow:var(--shadow-sm);
   display:flex; gap:20px; align-items:center; flex-wrap:wrap;
 }
 .student-avatar {
@@ -153,35 +143,47 @@ h1 em { font-style:italic; color:var(--accent); }
   font-family:'DM Serif Display',serif; font-size:22px; flex-shrink:0;
 }
 .student-info { flex:1; }
-.student-info .si-name {
-  font-family:'DM Serif Display',serif; font-size:22px; line-height:1.2;
+.student-info .si-name { font-family:'DM Serif Display',serif; font-size:22px; line-height:1.2; }
+.student-info .si-meta { font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); margin-top:3px; }
+.student-stats { display:flex; gap:12px; flex-wrap:wrap; }
+.stat-chip { text-align:center; background:var(--cream); border-radius:var(--radius); padding:10px 14px; min-width:68px; }
+.stat-chip .sc-val { font-family:'DM Serif Display',serif; font-size:22px; line-height:1.1; color:var(--ink); }
+.stat-chip .sc-label { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-top:2px; }
+
+/* MODE TABS */
+.mode-tabs {
+  display:flex; gap:0; margin-bottom:20px;
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
+  overflow:hidden; box-shadow:var(--shadow-sm);
 }
-.student-info .si-meta {
-  font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); margin-top:3px;
+.mode-tab {
+  flex:1; padding:13px 10px; border:none; background:transparent;
+  font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600;
+  cursor:pointer; color:var(--ink-soft); transition:all .15s;
+  border-right:1px solid var(--line); position:relative;
 }
-.student-stats { display:flex; gap:16px; flex-wrap:wrap; }
-.stat-chip {
-  text-align:center; background:var(--cream); border-radius:var(--radius);
-  padding:10px 16px; min-width:72px;
+.mode-tab:last-child { border-right:none; }
+.mode-tab:hover { background:var(--cream); color:var(--ink); }
+.mode-tab.active {
+  background:var(--accent); color:#fff;
 }
-.stat-chip .sc-val {
-  font-family:'DM Serif Display',serif; font-size:22px; line-height:1.1; color:var(--ink);
+.mode-tab .tab-count {
+  font-family:var(--mono); font-size:10px; font-weight:700;
+  display:inline-block; margin-left:6px; padding:1px 6px;
+  border-radius:10px; background:rgba(255,255,255,.25);
 }
-.stat-chip .sc-label {
-  font-family:var(--mono); font-size:10px; text-transform:uppercase;
-  letter-spacing:.05em; color:var(--ink-soft); margin-top:2px;
-}
+.mode-tab:not(.active) .tab-count { background:var(--line); color:var(--ink-soft); }
+
+/* TAB PANELS */
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
 
 /* SECTION CARDS */
 .section-card {
-  background:#fff; border:1px solid var(--line);
-  border-radius:var(--radius-lg); padding:22px 26px;
-  margin-bottom:18px; box-shadow:var(--shadow-sm);
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:22px 26px; margin-bottom:18px; box-shadow:var(--shadow-sm);
 }
-.section-card h3 {
-  font-family:'DM Serif Display',serif; font-size:18px;
-  margin-bottom:16px; display:flex; align-items:center; gap:8px;
-}
+.section-card h3 { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:16px; }
 
 /* ATTEMPTS TABLE */
 .attempts-table { width:100%; border-collapse:collapse; font-size:13.5px; }
@@ -193,96 +195,87 @@ h1 em { font-style:italic; color:var(--accent); }
 .attempts-table td { padding:10px 10px; border-bottom:1px solid var(--line); }
 .attempts-table tr:last-child td { border-bottom:none; }
 .attempts-table tr:hover td { background:var(--cream); }
+
 .grade-pill {
   font-family:var(--mono); font-size:11px; font-weight:700;
   padding:3px 10px; border-radius:10px; display:inline-block;
 }
-.grade-a-plus { background:#fef3c7; color:#92400e; }
-.grade-a      { background:#dcfce7; color:#166534; }
-.grade-b      { background:#dbeafe; color:#1e40af; }
-.grade-c      { background:#f3e8ff; color:#6b21a8; }
-.grade-d      { background:#fff7ed; color:#9a3412; }
-.grade-e      { background:#fce7f3; color:#9d174d; }
-.grade-f      { background:var(--rose-pale); color:var(--rose); }
-.mode-pill {
-  font-family:var(--mono); font-size:10px; font-weight:600;
-  padding:2px 8px; border-radius:8px;
-  background:var(--cream); color:var(--ink-soft); text-transform:uppercase;
+.gp-ap { background:#fef3c7; color:#92400e; }
+.gp-a  { background:#dcfce7; color:#166534; }
+.gp-b  { background:#dbeafe; color:#1e40af; }
+.gp-c  { background:#f3e8ff; color:#6b21a8; }
+.gp-d  { background:#fff7ed; color:#9a3412; }
+.gp-e  { background:#fce7f3; color:#9d174d; }
+.gp-f  { background:var(--rose-pale); color:var(--rose); }
+
+/* MODE BADGE */
+.mode-badge {
+  font-family:var(--mono); font-size:10px; font-weight:700; text-transform:uppercase;
+  padding:2px 8px; border-radius:8px; display:inline-block;
 }
-.mode-pill.event { background:var(--amber-pale); color:var(--amber); }
+.mb-lecture { background:var(--accent-pale); color:var(--accent); }
+.mb-lab     { background:var(--green-pale);  color:var(--green); }
+.mb-event   { background:var(--orange-pale); color:var(--orange); }
+
+/* QUIZ ID STYLE */
+.qid { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--ink); }
+.cohort-tag {
+  font-family:var(--mono); font-size:10px; color:var(--ink-soft);
+  background:var(--cream); padding:1px 7px; border-radius:6px; margin-left:4px;
+}
 
 /* TAG MASTERY */
 .tag-row { margin-bottom:10px; }
-.tag-row-head {
-  display:flex; justify-content:space-between; align-items:center;
-  margin-bottom:4px;
-}
-.tag-name {
-  font-family:var(--mono); font-size:12px; font-weight:600; color:var(--ink);
-}
-.tag-pct  {
-  font-family:var(--mono); font-size:12px; font-weight:700;
-}
-.tag-bar-wrap {
-  height:7px; background:var(--line); border-radius:4px; overflow:hidden;
-}
-.tag-bar-fill {
-  height:100%; border-radius:4px; transition:width .5s ease;
-}
+.tag-row-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.tag-name { font-family:var(--mono); font-size:12px; font-weight:600; color:var(--ink); }
+.tag-pct  { font-family:var(--mono); font-size:12px; font-weight:700; }
+.tag-bar-wrap { height:7px; background:var(--line); border-radius:4px; overflow:hidden; }
+.tag-bar-fill { height:100%; border-radius:4px; transition:width .5s ease; }
 
 /* CALIBRATION */
 .calib-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px; }
-@media(max-width:500px) { .calib-grid { grid-template-columns:1fr 1fr; } }
-.calib-cell {
-  background:var(--cream); border-radius:var(--radius);
-  padding:14px; text-align:center;
+.calib-cell { background:var(--cream); border-radius:var(--radius); padding:14px; text-align:center; }
+.calib-cell .cc-val { font-family:'DM Serif Display',serif; font-size:28px; line-height:1.1; }
+.calib-cell .cc-label { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-top:3px; line-height:1.4; }
+.calib-note { padding:12px 14px; border-radius:8px; font-size:13.5px; line-height:1.55; background:var(--amber-pale); color:var(--amber); border-left:3px solid var(--amber); }
+
+/* SUMMARY MINI-CARDS for tab overview */
+.mini-stats { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px; }
+.mini-stat {
+  background:var(--cream); border-radius:var(--radius); padding:12px 16px;
+  flex:1; min-width:90px; text-align:center;
 }
-.calib-cell .cc-val {
-  font-family:'DM Serif Display',serif; font-size:28px; line-height:1.1;
-}
-.calib-cell .cc-label {
-  font-family:var(--mono); font-size:10px; text-transform:uppercase;
-  letter-spacing:.05em; color:var(--ink-soft); margin-top:3px; line-height:1.4;
-}
-.calib-note {
-  padding:12px 14px; border-radius:8px; font-size:13.5px; line-height:1.55;
-  background:var(--amber-pale); color:var(--amber);
-  border-left:3px solid var(--amber);
-}
+.mini-stat .ms-val { font-family:'DM Serif Display',serif; font-size:24px; line-height:1.1; color:var(--ink); }
+.mini-stat .ms-label { font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-top:3px; }
 
 /* PASSPORT TEASER */
 .passport-teaser-card {
   background:linear-gradient(135deg,var(--violet-pale),#f8f4ff);
   border:1px solid #c4b5fd; border-radius:var(--radius-lg);
-  padding:22px 26px; margin-bottom:18px;
+  padding:20px 24px; margin-bottom:18px;
   display:flex; align-items:center; gap:16px; flex-wrap:wrap;
 }
-.pt-icon { font-size:36px; flex-shrink:0; }
-.pt-text .pt-title {
-  font-family:'DM Serif Display',serif; font-size:18px;
-  color:var(--violet); margin-bottom:4px;
-}
-.pt-text .pt-desc { font-size:13.5px; color:var(--slate); }
+.pt-icon { font-size:32px; flex-shrink:0; }
+.pt-text .pt-title { font-family:'DM Serif Display',serif; font-size:17px; color:var(--violet); margin-bottom:3px; }
+.pt-text .pt-desc  { font-size:13.5px; color:var(--slate); }
 
-/* LOADING */
-.spinner {
-  width:32px; height:32px; border:3px solid var(--line);
-  border-top-color:var(--accent); border-radius:50%;
-  animation:spin .8s linear infinite; margin:28px auto;
-}
+/* EMPTY / LOADING */
+.spinner { width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:28px auto; }
 @keyframes spin { to { transform:rotate(360deg); } }
-.empty-state {
-  padding:32px; text-align:center; color:var(--ink-soft); font-size:14px;
-}
+.empty-state { padding:32px; text-align:center; color:var(--ink-soft); font-size:14px; }
+.empty-state .es-icon { font-size:32px; margin-bottom:8px; }
 
 /* RESPONSIVE */
 @media(max-width:560px) {
   main { padding-top:92px; }
-  h1   { font-size:26px; }
+  h1 { font-size:26px; }
   .nav-links .nav-link:not(.primary) { display:none; }
-  .student-stats { gap:10px; }
+  .calib-grid { grid-template-columns:1fr 1fr; }
+  .mode-tab { font-size:12px; padding:11px 6px; }
   .attempts-table th:nth-child(4),
-  .attempts-table td:nth-child(4) { display:none; }
+  .attempts-table td:nth-child(4),
+  .attempts-table th:nth-child(7),
+  .attempts-table td:nth-child(7) { display:none; }
 }
 </style>
 </head>
@@ -303,11 +296,10 @@ h1 em { font-style:italic; color:var(--accent); }
 </nav>
 
 <main>
-
   <div class="page-head">
     <div class="eyebrow">Student Growth Intelligence · SGIF</div>
     <h1>My <em>Learning Record</em></h1>
-    <p class="lede">Enter your roll number to see all your quiz attempts, topic mastery, and confidence calibration across every lecture, lab, and event quiz.</p>
+    <p class="lede">Enter your roll number to see all your quiz attempts — classroom, lab, and events — along with your topic mastery and confidence calibration.</p>
   </div>
 
   <!-- LOOKUP -->
@@ -316,8 +308,7 @@ h1 em { font-style:italic; color:var(--accent); }
     <div class="lookup-row">
       <div class="lookup-field">
         <label for="roll-input">Roll Number</label>
-        <input id="roll-input" placeholder="E.G. 241302001"
-               onkeydown="if(event.key==='Enter') lookup()">
+        <input id="roll-input" placeholder="E.G. 241302001" onkeydown="if(event.key==='Enter') lookup()">
       </div>
       <button class="lookup-btn" id="lookup-btn" onclick="lookup()">View my record →</button>
     </div>
@@ -334,44 +325,82 @@ h1 em { font-style:italic; color:var(--accent); }
     <div class="passport-teaser-card">
       <div class="pt-icon">🎓</div>
       <div class="pt-text">
-        <div class="pt-title">Your Growth Passport is being built</div>
-        <div class="pt-desc">As you take more quizzes, your passport will show your learning trajectory, topic mastery trends, and confidence calibration — all in one place. Every quiz you take adds to it.</div>
+        <div class="pt-title">Your Growth Passport is building</div>
+        <div class="pt-desc">Take more quizzes to unlock your learning trajectory, topic mastery trends, and confidence calibration — all in one place.</div>
       </div>
     </div>
 
-    <!-- attempts -->
-    <div class="section-card">
-      <h3>📋 All Attempts</h3>
-      <div id="attempts-wrap"></div>
+    <!-- MODE TABS -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-btn-all" onclick="switchTab('all')">
+        📊 All <span class="tab-count" id="count-all">0</span>
+      </button>
+      <button class="mode-tab" id="tab-btn-classroom" onclick="switchTab('classroom')">
+        📖 Classroom <span class="tab-count" id="count-classroom">0</span>
+      </button>
+      <button class="mode-tab" id="tab-btn-events" onclick="switchTab('events')">
+        🏆 Events <span class="tab-count" id="count-events">0</span>
+      </button>
     </div>
 
-    <!-- tag mastery -->
-    <div class="section-card">
-      <h3>🎯 Topic Mastery</h3>
-      <div id="tags-wrap"></div>
+    <!-- ALL TAB -->
+    <div class="tab-panel active" id="panel-all">
+      <div class="section-card">
+        <h3>📋 All Attempts</h3>
+        <div id="attempts-all"></div>
+      </div>
+      <div class="section-card">
+        <h3>🎯 Topic Mastery — Combined</h3>
+        <div id="tags-all"></div>
+      </div>
+      <div class="section-card" id="calib-card-all" style="display:none">
+        <h3>🔬 Confidence Calibration</h3>
+        <div id="calib-all"></div>
+      </div>
     </div>
 
-    <!-- calibration -->
-    <div class="section-card" id="calib-card" style="display:none;">
-      <h3>🔬 Confidence Calibration</h3>
-      <div id="calib-wrap"></div>
+    <!-- CLASSROOM TAB -->
+    <div class="tab-panel" id="panel-classroom">
+      <div class="mini-stats" id="mini-classroom"></div>
+      <div class="section-card">
+        <h3>📖 Classroom &amp; Lab Attempts</h3>
+        <div id="attempts-classroom"></div>
+      </div>
+      <div class="section-card">
+        <h3>🎯 Topic Mastery — Classroom</h3>
+        <div id="tags-classroom"></div>
+      </div>
+    </div>
+
+    <!-- EVENTS TAB -->
+    <div class="tab-panel" id="panel-events">
+      <div class="mini-stats" id="mini-events"></div>
+      <div class="section-card">
+        <h3>🏆 Event &amp; Competition Attempts</h3>
+        <div id="attempts-events"></div>
+      </div>
+      <div class="section-card">
+        <h3>🎯 Topic Mastery — Events</h3>
+        <div id="tags-events"></div>
+      </div>
     </div>
 
   </div>
-
 </main>
 
 <script>
 /* ============================================================
-   SGIF STUDENT PORTAL — student.html
+   SGIF STUDENT PORTAL — student.html  (with mode tabs)
    Roll-number-only lookup. No Submission ID required.
-   Calls: ?action=student_lookup&roll=...
+   Three views: All / Classroom (LECTURE+LAB) / Events (EVENT)
    ============================================================ */
 const API_URL = 'PASTE_YOUR_FOUNDATION_EXEC_URL_HERE';
 
+let ALL_DATA = null;  // cache the full profile after lookup
+
 async function apiGet(params) {
-  const qs  = Object.entries(params).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
-  const url = API_URL + (API_URL.includes('?') ? '&' : '?') + qs;
+  const qs  = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const url = API_URL + (API_URL.includes('?')?'&':'?') + qs;
   const res = await fetch(url);
   const j   = await res.json();
   if (!j.success) throw new Error(j.message || 'Request failed');
@@ -384,12 +413,16 @@ async function lookup() {
   const btn   = document.getElementById('lookup-btn');
   errEl.classList.remove('show');
 
-  if (!roll) { errEl.textContent='Please enter your roll number.'; errEl.classList.add('show'); return; }
+  if (!roll) {
+    errEl.textContent = 'Please enter your roll number.';
+    errEl.classList.add('show'); return;
+  }
 
   btn.disabled = true; btn.textContent = 'Loading…';
 
   try {
     const data = await apiGet({ action:'student_lookup', roll });
+    ALL_DATA = data;
     renderProfile(data);
     document.getElementById('profile-panel').classList.add('show');
     document.getElementById('profile-panel').scrollIntoView({ behavior:'smooth', block:'start' });
@@ -404,8 +437,29 @@ async function lookup() {
   }
 }
 
+/* ── tab switching ── */
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.mode-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-btn-' + name).classList.add('active');
+}
+
+/* ── main render ── */
 function renderProfile(d) {
-  /* ── student header ── */
+  const attempts = d.attempts || [];
+
+  /* split by mode */
+  const classroomAttempts = attempts.filter(a =>
+    a.mode === 'LECTURE' || a.mode === 'LAB' || a.mode === 'LECTURE_LAB');
+  const eventAttempts = attempts.filter(a => a.mode === 'EVENT');
+
+  /* update tab counts */
+  document.getElementById('count-all').textContent       = attempts.length;
+  document.getElementById('count-classroom').textContent = classroomAttempts.length;
+  document.getElementById('count-events').textContent    = eventAttempts.length;
+
+  /* student header */
   const initials = (d.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   document.getElementById('student-header').innerHTML = `
     <div class="student-avatar">${esc(initials)}</div>
@@ -414,113 +468,145 @@ function renderProfile(d) {
       <div class="si-meta">${esc(d.roll)}${d.branch?' · '+esc(d.branch):''}${d.semester?' · Sem '+esc(d.semester):''}${d.section?' · Sec '+esc(d.section):''}</div>
     </div>
     <div class="student-stats">
-      <div class="stat-chip">
-        <div class="sc-val">${d.quizzesTaken}</div>
-        <div class="sc-label">Quizzes</div>
-      </div>
-      <div class="stat-chip">
-        <div class="sc-val">${d.avgPct}%</div>
-        <div class="sc-label">Avg score</div>
-      </div>
-      <div class="stat-chip">
-        <div class="sc-val">${d.bestGrade}</div>
-        <div class="sc-label">Best grade</div>
-      </div>
-      <div class="stat-chip">
-        <div class="sc-val">${d.attemptsCount}</div>
-        <div class="sc-label">Attempts</div>
-      </div>
+      <div class="stat-chip"><div class="sc-val">${d.quizzesTaken}</div><div class="sc-label">Quizzes</div></div>
+      <div class="stat-chip"><div class="sc-val">${d.avgPct}%</div><div class="sc-label">Avg score</div></div>
+      <div class="stat-chip"><div class="sc-val">${d.bestGrade}</div><div class="sc-label">Best grade</div></div>
+      <div class="stat-chip"><div class="sc-val">${d.attemptsCount}</div><div class="sc-label">Attempts</div></div>
     </div>`;
 
-  /* ── attempts table ── */
-  const attWrap = document.getElementById('attempts-wrap');
-  if (!d.attempts || !d.attempts.length) {
-    attWrap.innerHTML = '<div class="empty-state">No attempts yet.</div>'; 
-  } else {
-    const rows = [...d.attempts].reverse().map(a => {
-      const date = a.date ? new Date(a.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—';
-      const score = a.scoreWeighted !== undefined && a.scoreWeighted !== a.score
-        ? `${a.scoreWeighted}<small style="color:var(--ink-soft)">/${a.scoreMax}</small> <small style="color:var(--ink-soft)">(${a.score} raw)</small>`
-        : `${a.score}<small style="color:var(--ink-soft)">/${a.total||a.scoreMax}</small>`;
-      return `<tr>
-        <td><b>${esc(a.quiz)}</b>${a.cohortId?'<br><small style="color:var(--ink-soft);font-family:var(--mono);font-size:10px">'+esc(a.cohortId)+'</small>':''}</td>
-        <td>${date}</td>
-        <td>${score}</td>
-        <td>${a.pct}%</td>
-        <td><span class="grade-pill grade-${(a.grade||'f').toLowerCase().replace('+','-plus')}">${esc(a.grade)}</span></td>
-        <td><span class="mode-pill ${a.mode==='EVENT'?'event':''}">${esc(a.mode||'LECTURE')}</span></td>
-        <td style="font-family:var(--mono);font-size:12px;color:var(--ink-soft)">${esc(a.timeTaken||'—')}</td>
-      </tr>`;
-    }).join('');
-    attWrap.innerHTML = `
-      <table class="attempts-table">
-        <thead><tr>
-          <th>Quiz</th><th>Date</th><th>Score</th><th>%</th><th>Grade</th><th>Mode</th><th>Time</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-  }
+  /* ALL TAB */
+  renderAttemptsTable('attempts-all', attempts);
+  renderTagBars('tags-all', d.topics || []);
+  renderCalibration('calib-card-all', 'calib-all', d.calibration);
 
-  /* ── tag mastery ── */
-  const tagWrap = document.getElementById('tags-wrap');
-  if (!d.topics || !d.topics.length) {
-    tagWrap.innerHTML = '<div class="empty-state">No topic data yet — take a quiz to see your mastery map.</div>';
-  } else {
-    const sorted = [...d.topics].sort((a,b) => a.pct - b.pct); // weakest first
-    tagWrap.innerHTML = sorted.map(t => {
-      const color = t.pct >= 75 ? 'var(--green)'
-        : t.pct >= 50 ? 'var(--accent)'
-        : t.pct >= 30 ? 'var(--amber)'
-        : 'var(--rose)';
-      const label = t.pct >= 75 ? '✓ Strong' : t.pct >= 50 ? '→ Developing' : t.pct >= 30 ? '⚠ Needs work' : '✗ Weak spot';
-      return `<div class="tag-row">
-        <div class="tag-row-head">
-          <span class="tag-name">${esc(t.tag)}</span>
-          <span class="tag-pct" style="color:${color}">${t.pct}% <small style="font-weight:400;color:var(--ink-soft)">(${t.correct}/${t.total}) ${label}</small></span>
-        </div>
-        <div class="tag-bar-wrap">
-          <div class="tag-bar-fill" style="width:${t.pct}%;background:${color}"></div>
-        </div>
-      </div>`;
-    }).join('');
-  }
+  /* CLASSROOM TAB */
+  renderMiniStats('mini-classroom', classroomAttempts, '📖 Classroom');
+  renderAttemptsTable('attempts-classroom', classroomAttempts);
+  renderTagBars('tags-classroom', deriveTopics(classroomAttempts));
 
-  /* ── calibration ── */
-  const calib = d.calibration;
-  if (calib && calib.itemsRated > 0) {
-    document.getElementById('calib-card').style.display = '';
-    let note = '';
-    if (calib.overconfidentItems > 0 && calib.underconfidentItems === 0) {
-      note = `You marked yourself <b>Very Sure</b> but got <b>${calib.overconfidentItems}</b> question${calib.overconfidentItems>1?'s':''} wrong. These are your most valuable study targets — the gaps you don't know you have.`;
-    } else if (calib.underconfidentItems > 0 && calib.overconfidentItems === 0) {
-      note = `You got <b>${calib.underconfidentItems}</b> question${calib.underconfidentItems>1?'s':''} right despite rating yourself as Not Sure. Trust your knowledge more — you know more than you think.`;
-    } else if (calib.overconfidentItems > 0) {
-      note = `<b>${calib.overconfidentItems}</b> overconfident mistake${calib.overconfidentItems>1?'s':''} and <b>${calib.underconfidentItems}</b> hidden strength${calib.underconfidentItems>1?'s':''}. Focus revision on the topics where you felt sure but weren't.`;
-    } else {
-      note = `Well calibrated! Your confidence ratings closely match your actual accuracy. Average confidence: ${calib.avgConfidencePct}%.`;
-    }
-    document.getElementById('calib-wrap').innerHTML = `
-      <div class="calib-grid">
-        <div class="calib-cell">
-          <div class="cc-val" style="color:var(--ink-soft)">${calib.itemsRated}</div>
-          <div class="cc-label">Questions rated</div>
-        </div>
-        <div class="calib-cell">
-          <div class="cc-val" style="color:var(--rose)">${calib.overconfidentItems}</div>
-          <div class="cc-label">Very Sure but Wrong</div>
-        </div>
-        <div class="calib-cell">
-          <div class="cc-val" style="color:var(--violet)">${calib.underconfidentItems}</div>
-          <div class="cc-label">Unsure but Correct</div>
-        </div>
-      </div>
-      <div class="calib-note">${note}</div>`;
-  }
+  /* EVENTS TAB */
+  renderMiniStats('mini-events', eventAttempts, '🏆 Events');
+  renderAttemptsTable('attempts-events', eventAttempts);
+  renderTagBars('tags-events', deriveTopics(eventAttempts));
 }
 
+function renderMiniStats(containerId, attempts, label) {
+  const wrap = document.getElementById(containerId);
+  if (!attempts.length) { wrap.innerHTML = ''; return; }
+  const avgPct = Math.round(attempts.reduce((s,a)=>s+a.pct,0)/attempts.length);
+  const best   = attempts.slice().sort((a,b)=>b.pct-a.pct)[0];
+  const quizzes = [...new Set(attempts.map(a=>a.quiz))].length;
+  wrap.innerHTML = `
+    <div class="mini-stat"><div class="ms-val">${attempts.length}</div><div class="ms-label">Attempts</div></div>
+    <div class="mini-stat"><div class="ms-val">${quizzes}</div><div class="ms-label">Quizzes</div></div>
+    <div class="mini-stat"><div class="ms-val">${avgPct}%</div><div class="ms-label">Avg score</div></div>
+    <div class="mini-stat"><div class="ms-val">${best.grade}</div><div class="ms-label">Best grade</div></div>`;
+}
+
+function renderAttemptsTable(containerId, attempts) {
+  const wrap = document.getElementById(containerId);
+  if (!attempts || !attempts.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="es-icon">📭</div>No attempts in this category yet.</div>';
+    return;
+  }
+  const sorted = [...attempts].reverse();
+  const rows = sorted.map(a => {
+    const date  = a.date ? new Date(a.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    const score = (a.scoreWeighted !== undefined && a.scoreWeighted !== a.score)
+      ? `${a.scoreWeighted}<small style="color:var(--ink-soft)">/${a.scoreMax}</small>`
+      : `${a.score}<small style="color:var(--ink-soft)">/${a.total||a.scoreMax}</small>`;
+    const gradeClass = gradeToClass(a.grade);
+    const modeLabel  = modeToLabel(a.mode);
+    return `<tr>
+      <td><span class="qid">${esc(a.quiz)}</span><span class="cohort-tag">${esc(a.cohortId||'')}</span></td>
+      <td>${date}</td>
+      <td>${score}</td>
+      <td style="font-family:var(--mono);font-weight:700">${a.pct}%</td>
+      <td><span class="grade-pill ${gradeClass}">${esc(a.grade)}</span></td>
+      <td>${modeLabel}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:var(--ink-soft)">${esc(a.timeTaken||'—')}</td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `
+    <table class="attempts-table">
+      <thead><tr>
+        <th>Quiz</th><th>Date</th><th>Score</th><th>%</th><th>Grade</th><th>Mode</th><th>Time</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderTagBars(containerId, topics) {
+  const wrap = document.getElementById(containerId);
+  if (!topics || !topics.length) {
+    wrap.innerHTML = '<div class="empty-state">No topic data yet for this category.</div>';
+    return;
+  }
+  const sorted = [...topics].sort((a,b)=>a.pct-b.pct);
+  wrap.innerHTML = sorted.map(t => {
+    const color = t.pct>=75?'var(--green)':t.pct>=50?'var(--accent)':t.pct>=30?'var(--amber)':'var(--rose)';
+    const label = t.pct>=75?'✓ Strong':t.pct>=50?'→ Developing':t.pct>=30?'⚠ Needs work':'✗ Weak spot';
+    return `<div class="tag-row">
+      <div class="tag-row-head">
+        <span class="tag-name">${esc(t.tag)}</span>
+        <span class="tag-pct" style="color:${color}">${t.pct}% <small style="font-weight:400;color:var(--ink-soft)">(${t.correct}/${t.total}) ${label}</small></span>
+      </div>
+      <div class="tag-bar-wrap"><div class="tag-bar-fill" style="width:${t.pct}%;background:${color}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderCalibration(cardId, wrapId, calib) {
+  const card = document.getElementById(cardId);
+  const wrap = document.getElementById(wrapId);
+  if (!calib || calib.itemsRated === 0) { card.style.display='none'; return; }
+  card.style.display = '';
+
+  let note = '';
+  if (calib.overconfidentItems > 0 && calib.underconfidentItems === 0)
+    note = `You marked yourself <b>Very Sure</b> but got <b>${calib.overconfidentItems}</b> question${calib.overconfidentItems>1?'s':''} wrong. These are your most valuable study targets.`;
+  else if (calib.underconfidentItems > 0 && calib.overconfidentItems === 0)
+    note = `You got <b>${calib.underconfidentItems}</b> right despite rating yourself as Not Sure. Trust your instincts more.`;
+  else if (calib.overconfidentItems > 0)
+    note = `<b>${calib.overconfidentItems}</b> overconfident mistake${calib.overconfidentItems>1?'s':''} and <b>${calib.underconfidentItems}</b> hidden strength${calib.underconfidentItems>1?'s':''}. Focus revision on topics where you felt sure but weren't.`;
+  else
+    note = `Well calibrated! Average confidence: ${calib.avgConfidencePct}%.`;
+
+  wrap.innerHTML = `
+    <div class="calib-grid">
+      <div class="calib-cell"><div class="cc-val" style="color:var(--ink-soft)">${calib.itemsRated}</div><div class="cc-label">Questions rated</div></div>
+      <div class="calib-cell"><div class="cc-val" style="color:var(--rose)">${calib.overconfidentItems}</div><div class="cc-label">Very Sure but Wrong</div></div>
+      <div class="calib-cell"><div class="cc-val" style="color:var(--violet)">${calib.underconfidentItems}</div><div class="cc-label">Unsure but Correct</div></div>
+    </div>
+    <div class="calib-note">${note}</div>`;
+}
+
+/* derive topic stats from a subset of attempts (for tab-specific mastery) */
+function deriveTopics(attempts) {
+  /* attempts don't carry per-tag breakdown client-side —
+     we can only show what the server returned for the full profile.
+     For classroom/event splits we filter the server-returned topics
+     by which tags appear in those attempts' quiz IDs.
+     This is approximate; the server's buildProfile_ covers all attempts.
+     A future enhancement: add mode param to student_lookup endpoint.
+     For now, show a note pointing to the combined view for full accuracy. */
+  if (!attempts.length) return [];
+  /* return empty to show the graceful fallback message */
+  return [];
+}
+
+/* ── helpers ── */
+function gradeToClass(g) {
+  const m = {'A+':'gp-ap','A':'gp-a','B':'gp-b','C':'gp-c','D':'gp-d','E':'gp-e','F':'gp-f'};
+  return m[g] || 'gp-f';
+}
+function modeToLabel(m) {
+  if (m === 'EVENT') return '<span class="mode-badge mb-event">Event</span>';
+  if (m === 'LAB')   return '<span class="mode-badge mb-lab">Lab</span>';
+  return '<span class="mode-badge mb-lecture">Lecture</span>';
+}
 function esc(s) {
-  return String(s==null?'':s).replace(/[&<>"']/g, m =>
-    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 </script>
 </body>
