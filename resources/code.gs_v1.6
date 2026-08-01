@@ -1,0 +1,1107 @@
+/* ============================================================================
+   SGIF PLATFORM — Apps Script Backend (Code.gs)  v1.6.0
+   Modules:  1 Foundation · 2 Student · 3 Activities & Registration · 4 Dashboard
+   ----------------------------------------------------------------------------
+   WHAT CHANGED IN v1.6  (everything else identical to v1.5)
+   ─────────────────────────────────────────────────────────────────────────────
+   NEW ENDPOINTS
+
+   GET  student_lookup&roll
+        Roll-number-only student profile for student.html self-service portal.
+        Returns attempts list + tag mastery + calibration snapshot.
+        No Submission ID required. Calibration data IS included because
+        scores in a university context are not sensitive enough to warrant
+        the overhead of Submission ID storage by students.
+
+   GET  attempts_summary&roll&quiz (optional filters)
+        Lightweight attempt list for a given roll (or all rolls if key provided).
+        Used by student.html recent attempts widget.
+
+   GET  tag_mastery&cohort&quiz (optional)
+        Cohort-level tag accuracy — for faculty dashboard.
+        Returns [{tag, correct, total, accuracy_pct}] sorted hardest first.
+        Optionally filtered by cohortId and/or quiz prefix.
+
+   GET  cohort_summary&cohort (optional) &key=api_key
+        Aggregated stats per quiz for a cohort — faculty dashboard main table.
+        Returns [{quizId, cohortId, attempts, avgPct, passRate, topTag, hardestTag}]
+        api_key gated.
+
+   GET  student_list_v2&cohort&branch&semester&section&key
+        Extended student list with branch/semester/section filters.
+        api_key gated. Powers the faculty dashboard filter panel.
+
+   DEPLOY CHECKLIST
+   ─────────────────
+   □ Replace Code.gs entirely with this file
+   □ Deploy → Manage deployments → New version → Deploy
+   □ /exec URL does NOT change
+   □ No sheet changes needed — all new endpoints read existing tabs
+   ============================================================================ */
+
+const SGIF = {
+  SHEETS: {
+    CONFIG:        'Config',
+    AUDIT:         'Audit',
+    RESPONSES:     'Responses',
+    EVENTS:        'Events',
+    STUDENTS:      'Students',
+    ACTIVITIES:    'Activities',
+    REGISTRATIONS: 'Registrations'
+  },
+  VERSION: '1.7.0'
+};
+
+
+/* ============================ ROUTERS ==================================== */
+
+function doPost(e) {
+  try {
+    var data = {};
+    if (e && e.postData && e.postData.contents) data = JSON.parse(e.postData.contents);
+    var action = String(data.action || 'quiz_response').toLowerCase();
+    switch (action) {
+      case 'quiz_response':
+      case 'response':  return handleQuizResponse_(data);
+      case 'events':    return handleEvents_(data);
+      case 'ping':      return ok_({ pong: true, version: SGIF.VERSION });
+      default:          return fail_('ERR-004', 'Unknown action: ' + action);
+    }
+  } catch (err) {
+    logAudit_('Foundation', 'doPost', 'ERROR', String(err));
+    return fail_('ERR-009', String(err));
+  }
+}
+
+function doGet(e) {
+  try {
+    var p = (e && e.parameter) ? e.parameter : {};
+    var action = String(p.action || '').toLowerCase();
+    switch (action) {
+      case '':
+      case 'ping':                return ok_({ message: 'SGIF API live.', version: SGIF.VERSION });
+      /* Module 1 */
+      case 'leaderboard':         return handleLeaderboard_(p);
+      case 'quizzes':             return handleQuizList_();
+      case 'config':              return ok_(getAllConfig_());
+      /* Module 2 */
+      case 'student_profile':     return handleStudentProfile_(p);
+      case 'student_lookup':      return handleStudentLookup_(p);    // NEW v1.6
+      case 'attempts_summary':    return handleAttemptsSummary_(p);  // NEW v1.6
+      case 'students':            return handleStudentsList_(p);
+      /* Module 3 */
+      case 'activities':          return handleActivities_(p);
+      case 'register':            return handleRegister_(p);
+      case 'my_registrations':    return handleMyRegistrations_(p);
+      case 'cancel_registration': return handleCancelRegistration_(p);
+      case 'participants':        return handleParticipants_(p);
+      /* Module 4 — Dashboard */
+      case 'tag_mastery':         return handleTagMastery_(p);       // NEW v1.6
+      case 'cohort_summary':      return handleCohortSummary_(p);    // NEW v1.6
+      case 'student_list_v2':     return handleStudentListV2_(p);    // NEW v1.6
+      /* Module 5 — Events Hub */
+      case 'league_standings':    return handleLeagueStandings_(p);  // NEW v1.7
+      default:                    return fail_('ERR-004', 'Unknown action: ' + action);
+    }
+  } catch (err) {
+    logAudit_('Foundation', 'doGet', 'ERROR', String(err));
+    return fail_('ERR-009', String(err));
+  }
+}
+
+
+/* ==================== MODULE 1 — WRITE HANDLERS ========================== */
+
+function handleQuizResponse_(d) {
+  var sh = getSheet_(SGIF.SHEETS.RESPONSES, RESPONSE_HEADERS_());
+  var tags     = firstNonEmpty_(collectIndexed_(d, 'tag_'),     d.tags);
+  var confs    = firstNonEmpty_(collectIndexed_(d, 'conf_'),    d.confidence);
+  var corrects = firstNonEmpty_(collectIndexed_(d, 'correct_'), d.correct);
+  var scoreRaw = (d.score !== undefined) ? d.score : d.scoreRaw;
+
+  sh.appendRow([
+    new Date(), safe_(d.submissionId), safe_(d.sessionId),
+    safe_(d.quizType || d.quizId), safe_(d.cohortId),
+    safe_(d.name), safe_(d.roll), safe_(d.section), safe_(d.branch), safe_(d.semester),
+    safe_(d.mode || 'LECTURE'),
+    numOr_(scoreRaw, ''), numOr_(d.scoreWeighted, numOr_(scoreRaw, '')),
+    numOr_(d.total, ''), numOr_(d.scoreMax, numOr_(d.total, '')),
+    numOr_(d.percentage, ''), safe_(d.grade), safe_(d.passed),
+    safe_(d.timeTaken), safe_(d.submittedAt),
+    JSON.stringify(d.sectionScores || []), JSON.stringify(d.difficultyScores || {}),
+    JSON.stringify(tags), JSON.stringify(confs), JSON.stringify(corrects)
+  ]);
+
+  logAudit_('Quiz', 'quiz_response', 'OK',
+    safe_(d.roll) + ' / ' + safe_(d.quizType || d.quizId));
+  return ok_({ stored: true });
+}
+
+function handleEvents_(d) {
+  var sh = getSheet_(SGIF.SHEETS.EVENTS, EVENT_HEADERS_());
+  var events = (d && d.events) ? d.events : [];
+  if (!events.length) return ok_({ received: 0 });
+  var rows = events.map(function (ev) {
+    return [
+      new Date(), safe_(ev.sessionId), numOr_(ev.eventId, ''), safe_(ev.quizId),
+      safe_(ev.studentId), safe_(ev.questionId), safe_(ev.eventType),
+      safe_(ev.eventValue), safe_(ev.clientTs), numOr_(ev.elapsedMs, '')
+    ];
+  });
+  sh.getRange(sh.getLastRow() + 1, 1, rows.length, rows[0].length).setValues(rows);
+  return ok_({ received: rows.length });
+}
+
+
+/* ==================== MODULE 1 — READ HANDLERS =========================== */
+
+function handleLeaderboard_(p) {
+  var top  = parseInt(p.top, 10) || 5;
+  var quiz = String(p.quiz || '').toLowerCase();
+  var rows = readResponses_();
+  if (!rows.length) return ok_([]);
+
+  var best = {};
+  rows.forEach(function (r) {
+    if (quiz && String(r.quiz).toLowerCase().indexOf(quiz) === -1) return;
+    if (!r.roll) return;
+    var key = r.roll + '::' + r.quiz;
+    if (!best[key] || r.pct > best[key].pct) {
+      best[key] = {
+        name: r.name, roll: r.roll, section: r.section,
+        score: r.scoreWeighted || r.score,
+        total: r.scoreMax || r.total,
+        pct: r.pct, grade: r.grade
+      };
+    }
+  });
+  var sorted = Object.keys(best).map(function (k) { return best[k]; })
+    .sort(function (a, b) { return (b.pct - a.pct) || (b.score - a.score); })
+    .slice(0, top);
+  return ok_(sorted);
+}
+
+function handleQuizList_() {
+  var rows = readResponses_();
+  if (!rows.length) return ok_([]);
+  var map = {};
+  rows.forEach(function (r) {
+    if (!r.quiz) return;
+    if (!map[r.quiz]) map[r.quiz] = {
+      quiz: r.quiz, cohortId: r.cohortId, mode: r.mode,
+      attempts: 0, lastSeen: null
+    };
+    map[r.quiz].attempts++;
+    if (r.ts && (!map[r.quiz].lastSeen || r.ts > map[r.quiz].lastSeen))
+      map[r.quiz].lastSeen = r.ts;
+  });
+  var list = Object.keys(map).map(function (k) {
+    var o = map[k];
+    return {
+      quiz: o.quiz, cohortId: o.cohortId, mode: o.mode,
+      attempts: o.attempts,
+      lastSeen: o.lastSeen ? o.lastSeen.toISOString() : ''
+    };
+  }).sort(function (a, b) { return (b.lastSeen > a.lastSeen) ? 1 : -1; });
+  return ok_(list);
+}
+
+
+/* ==================== MODULE 2 — STUDENT HANDLERS ======================== */
+
+/* ---- student_profile (existing — requires sid ownership check) ---------- */
+function handleStudentProfile_(p) {
+  var roll = String(p.roll || '').trim().toUpperCase();
+  var sid  = String(p.sid  || '').trim().toUpperCase();
+  if (!roll || !sid) return fail_('ERR-001', 'roll and sid are both required.');
+
+  var rows = readResponses_().filter(function (r) { return r.roll === roll; });
+  if (!rows.length) return fail_('ERR-004', 'No attempts found for that roll number.');
+
+  var owns = rows.some(function (r) {
+    return String(r.submissionId || '').toUpperCase() === sid;
+  });
+  if (!owns) {
+    logAudit_('Student', 'student_profile', 'DENIED', roll);
+    return fail_('ERR-003', 'That Submission ID does not belong to this roll number.');
+  }
+  return ok_(buildProfile_(roll, rows));
+}
+
+/* ---- student_lookup (NEW v1.6 — roll number only, for student.html) ----- */
+function handleStudentLookup_(p) {
+  var roll = String(p.roll || '').trim().toUpperCase();
+  if (!roll) return fail_('ERR-001', 'roll is required.');
+
+  var rows = readResponses_().filter(function (r) { return r.roll === roll; });
+  if (!rows.length) return fail_('ERR-004', 'No attempts found for roll: ' + roll);
+
+  logAudit_('Student', 'student_lookup', 'OK', roll);
+  return ok_(buildProfile_(roll, rows));
+}
+
+/* ---- shared profile builder -------------------------------------------- */
+function buildProfile_(roll, rows) {
+  var roster = lookupRoster_(roll);
+  rows.sort(function (a, b) { return a.ts - b.ts; });
+
+  var attempts = rows.map(function (r) {
+    return {
+      quiz:       r.quiz,
+      cohortId:   r.cohortId,
+      mode:       r.mode,
+      date:       r.ts ? r.ts.toISOString() : '',
+      score:      r.score,
+      scoreWeighted: r.scoreWeighted,
+      total:      r.total,
+      scoreMax:   r.scoreMax,
+      pct:        r.pct,
+      grade:      r.grade,
+      timeTaken:  r.timeTaken,
+      submissionId: r.submissionId
+    };
+  });
+
+  /* tag mastery across all attempts */
+  var tagStats = {};
+  var calib = { rated: 0, sureWrong: 0, unsureRight: 0, confSum: 0 };
+
+  rows.forEach(function (r) {
+    var tags = parseArr_(r.tagsJson);
+    var corr = parseArr_(r.correctJson);
+    var conf = parseArr_(r.confJson);
+    for (var i = 0; i < tags.length; i++) {
+      var tg = tags[i]; if (!tg) continue;
+      if (!tagStats[tg]) tagStats[tg] = { c: 0, t: 0 };
+      tagStats[tg].t++;
+      var isRight = Number(corr[i]) === 1;
+      if (isRight) tagStats[tg].c++;
+      var cv = Number(conf[i]) || 0;
+      if (cv > 0) {
+        calib.rated++; calib.confSum += cv;
+        if (cv === 3 && !isRight) calib.sureWrong++;
+        if (cv === 1 &&  isRight) calib.unsureRight++;
+      }
+    }
+  });
+
+  var topics = Object.keys(tagStats).map(function (t) {
+    return {
+      tag:     t,
+      correct: tagStats[t].c,
+      total:   tagStats[t].t,
+      pct:     Math.round(100 * tagStats[t].c / tagStats[t].t)
+    };
+  }).sort(function (a, b) { return a.pct - b.pct; }); // weakest first
+
+  var avgPct = Math.round(
+    rows.reduce(function (s, r) { return s + r.pct; }, 0) / rows.length
+  );
+  var bestRow = rows.slice().sort(function (a, b) { return b.pct - a.pct; })[0];
+
+  return {
+    roll:          roll,
+    name:          roster.name    || rows[rows.length - 1].name,
+    section:       roster.section || rows[rows.length - 1].section,
+    branch:        roster.branch  || rows[rows.length - 1].branch  || '',
+    semester:      roster.semester|| rows[rows.length - 1].semester|| '',
+    cohortId:      roster.cohortId|| rows[rows.length - 1].cohortId|| '',
+    quizzesTaken:  uniq_(rows.map(function (r) { return r.quiz; })).length,
+    attemptsCount: rows.length,
+    avgPct:        avgPct,
+    bestGrade:     bestRow.grade,
+    bestPct:       bestRow.pct,
+    attempts:      attempts,
+    topics:        topics,
+    calibration: {
+      itemsRated:          calib.rated,
+      avgConfidencePct:    calib.rated
+        ? Math.round(100 * calib.confSum / calib.rated / 3) : 0,
+      overconfidentItems:  calib.sureWrong,
+      underconfidentItems: calib.unsureRight
+    }
+  };
+}
+
+/* ---- attempts_summary (NEW v1.6) — lightweight, for portal widget ------- */
+function handleAttemptsSummary_(p) {
+  var roll = String(p.roll || '').trim().toUpperCase();
+  var quiz = String(p.quiz || '').trim();
+  if (!roll) return fail_('ERR-001', 'roll is required.');
+
+  var rows = readResponses_().filter(function (r) {
+    if (r.roll !== roll) return false;
+    if (quiz && r.quiz.toLowerCase().indexOf(quiz.toLowerCase()) === -1) return false;
+    return true;
+  });
+
+  var list = rows.sort(function (a, b) { return b.ts - a.ts; })
+    .map(function (r) {
+      return {
+        quiz:      r.quiz,
+        cohortId:  r.cohortId,
+        mode:      r.mode,
+        date:      r.ts ? r.ts.toISOString() : '',
+        pct:       r.pct,
+        grade:     r.grade,
+        score:     r.scoreWeighted || r.score,
+        scoreMax:  r.scoreMax || r.total,
+        timeTaken: r.timeTaken,
+        submissionId: r.submissionId
+      };
+    });
+  return ok_(list);
+}
+
+function handleStudentsList_(p) {
+  var required = String(getConfig_('api_key', '')).trim();
+  if (required && String(p.key || '').trim() !== required) {
+    logAudit_('Student', 'students', 'DENIED', '');
+    return fail_('ERR-003', 'Invalid or missing key.');
+  }
+  var rows = readResponses_();
+  if (!rows.length) return ok_([]);
+  var map = {};
+  rows.forEach(function (r) {
+    if (!r.roll) return;
+    if (!map[r.roll]) map[r.roll] = {
+      roll: r.roll, name: r.name, section: r.section,
+      branch: r.branch, semester: r.semester,
+      attempts: 0, quizzes: {}, pctSum: 0, lastSeen: null
+    };
+    var m = map[r.roll];
+    m.attempts++; m.quizzes[r.quiz] = true; m.pctSum += r.pct;
+    m.name     = r.name     || m.name;
+    m.section  = r.section  || m.section;
+    m.branch   = r.branch   || m.branch;
+    m.semester = r.semester || m.semester;
+    if (r.ts && (!m.lastSeen || r.ts > m.lastSeen)) m.lastSeen = r.ts;
+  });
+  var list = Object.keys(map).map(function (k) {
+    var m = map[k];
+    return {
+      roll: m.roll, name: m.name, section: m.section,
+      branch: m.branch, semester: m.semester,
+      quizzes: Object.keys(m.quizzes).length,
+      attempts: m.attempts,
+      avgPct: Math.round(m.pctSum / m.attempts),
+      lastSeen: m.lastSeen ? m.lastSeen.toISOString() : ''
+    };
+  }).sort(function (a, b) { return b.avgPct - a.avgPct; });
+  return ok_(list);
+}
+
+function lookupRoster_(roll) {
+  var sh = ss_().getSheetByName(SGIF.SHEETS.STUDENTS);
+  if (!sh || sh.getLastRow() <= 1) return {};
+  var values = sh.getDataRange().getValues();
+  var H = STUDENT_HEADERS_();
+  var iRoll = H.indexOf('Roll Number');
+  for (var r = 1; r < values.length; r++) {
+    if (String(values[r][iRoll]).trim().toUpperCase() === roll) {
+      return {
+        name:     values[r][H.indexOf('Name')],
+        section:  values[r][H.indexOf('Section')],
+        branch:   values[r][H.indexOf('Branch')],
+        semester: values[r][H.indexOf('Semester')],
+        cohortId: values[r][H.indexOf('Cohort_ID')],
+        status:   values[r][H.indexOf('Status')]
+      };
+    }
+  }
+  return {};
+}
+
+
+/* ==================== MODULE 3 — ACTIVITIES & REGISTRATION =============== */
+
+function handleActivities_(p) {
+  var acts = readActivities_();
+  var regCounts = countActiveRegs_();
+  var now = new Date();
+  var visible = acts.filter(function (a) {
+    return a.status === 'OPEN' || a.status === 'CLOSED' || a.status === 'DONE';
+  }).map(function (a) {
+    var used = regCounts[a.id] || 0;
+    var seatsLeft = (a.capacity > 0) ? Math.max(0, a.capacity - used) : null;
+    var windowOk = (!a.regStart || now >= a.regStart) && (!a.regEnd || now <= a.regEnd);
+    return {
+      id: a.id, title: a.title, type: a.type, description: a.description,
+      venue: a.venue, date: a.date ? a.date.toISOString() : '',
+      regStart: a.regStart ? a.regStart.toISOString() : '',
+      regEnd:   a.regEnd   ? a.regEnd.toISOString()   : '',
+      capacity: a.capacity, registered: used, seatsLeft: seatsLeft,
+      status: a.status, eligibility: a.eligibility, quizIds: a.quizIds,
+      regOpen: (a.status === 'OPEN') && windowOk && (seatsLeft === null || seatsLeft > 0)
+    };
+  });
+  return ok_(visible);
+}
+
+function handleRegister_(p) {
+  var activityId     = String(p.activity       || '').trim();
+  var roll           = String(p.roll           || '').trim().toUpperCase();
+  var name           = String(p.name           || '').trim();
+  var email          = String(p.email          || '').trim();
+  var phone          = String(p.phone          || '').trim();
+  var course         = String(p.course         || '').trim();
+  var specialisation = String(p.specialisation || '').trim();
+
+  if (!activityId || !roll || !name)
+    return fail_('ERR-001', 'activity, roll and name are required.');
+
+  var lock = LockService.getScriptLock();
+  try { lock.waitLock(10000); }
+  catch (e) { return fail_('ERR-009', 'Server busy — please try again in a few seconds.'); }
+
+  try {
+    var act = readActivities_().filter(function (a) { return a.id === activityId; })[0];
+    if (!act)                   return fail_('ERR-004', 'Activity not found.');
+    if (act.status !== 'OPEN')  return fail_('ERR-006', 'Registration is not open for this activity.');
+
+    var now = new Date();
+    if (act.regStart && now < act.regStart)
+      return fail_('ERR-006', 'Registration has not started yet.');
+    if (act.regEnd && now > act.regEnd)
+      return fail_('ERR-006', 'Registration window has closed.');
+
+    var regs = readRegistrations_();
+    var dup = regs.some(function (r) {
+      return r.activityId === activityId && r.roll === roll && r.status === 'Registered';
+    });
+    if (dup) return fail_('ERR-005', 'You are already registered for this activity.');
+
+    if (act.capacity > 0) {
+      var used = regs.filter(function (r) {
+        return r.activityId === activityId && r.status === 'Registered';
+      }).length;
+      if (used >= act.capacity) return fail_('ERR-006', 'Sorry, this activity is full.');
+    }
+
+    var rid = 'REG-' + activityId + '-' + Date.now().toString(36).toUpperCase() +
+              Math.floor(Math.random() * 1296).toString(36).toUpperCase();
+
+    var sh = getSheet_(SGIF.SHEETS.REGISTRATIONS, REGISTRATION_HEADERS_());
+    sh.appendRow([
+      new Date(), rid, activityId, roll, name,
+      safe_(p.section), safe_(p.branch),
+      email, phone, course,
+      safe_(p.semester), specialisation,
+      'Registered', ''
+    ]);
+
+    var currentUsed = regs.filter(function (r) {
+      return r.activityId === activityId && r.status === 'Registered';
+    }).length;
+    var seatsLeft = (act.capacity > 0)
+      ? Math.max(0, act.capacity - (currentUsed + 1)) : null;
+
+    logAudit_('Activity', 'register', 'OK', roll + ' / ' + activityId);
+    return ok_({
+      registered: true, registrationId: rid,
+      activity: act.title, seatsLeft: seatsLeft,
+      note: 'Save your Registration ID — you need it to cancel.'
+    });
+  } finally { lock.releaseLock(); }
+}
+
+function handleMyRegistrations_(p) {
+  var roll = String(p.roll || '').trim().toUpperCase();
+  if (!roll) return fail_('ERR-001', 'roll is required.');
+  var actsById = {};
+  readActivities_().forEach(function (a) { actsById[a.id] = a; });
+  var list = readRegistrations_()
+    .filter(function (r) { return r.roll === roll; })
+    .map(function (r) {
+      var a = actsById[r.activityId] || {};
+      return {
+        registrationId: r.rid, activityId: r.activityId,
+        title: a.title || r.activityId, type: a.type || '',
+        date:  a.date  ? a.date.toISOString()  : '',
+        venue: a.venue || '', status: r.status,
+        registeredOn: r.ts ? r.ts.toISOString() : '',
+        email: r.email, phone: r.phone,
+        course: r.course, specialisation: r.specialisation
+      };
+    })
+    .sort(function (a, b) { return (b.registeredOn > a.registeredOn) ? 1 : -1; });
+  return ok_(list);
+}
+
+function handleCancelRegistration_(p) {
+  var roll = String(p.roll || '').trim().toUpperCase();
+  var rid  = String(p.rid  || '').trim().toUpperCase();
+  if (!roll || !rid) return fail_('ERR-001', 'roll and rid are required.');
+
+  var sh = ss_().getSheetByName(SGIF.SHEETS.REGISTRATIONS);
+  if (!sh || sh.getLastRow() <= 1) return fail_('ERR-004', 'Registration not found.');
+
+  var values = sh.getDataRange().getValues();
+  var H = REGISTRATION_HEADERS_();
+  var iRid = H.indexOf('Registration_ID'), iRoll = H.indexOf('Roll Number'),
+      iStatus = H.indexOf('Status'), iCancelled = H.indexOf('Cancelled On');
+
+  for (var r = 1; r < values.length; r++) {
+    if (String(values[r][iRid]).trim().toUpperCase() === rid) {
+      if (String(values[r][iRoll]).trim().toUpperCase() !== roll) {
+        logAudit_('Activity', 'cancel_registration', 'DENIED', roll + ' / ' + rid);
+        return fail_('ERR-003', 'That Registration ID does not belong to this roll number.');
+      }
+      if (String(values[r][iStatus]) !== 'Registered')
+        return fail_('ERR-006', 'This registration is already cancelled.');
+      sh.getRange(r + 1, iStatus    + 1).setValue('Cancelled');
+      sh.getRange(r + 1, iCancelled + 1).setValue(new Date());
+      logAudit_('Activity', 'cancel_registration', 'OK', roll + ' / ' + rid);
+      return ok_({ cancelled: true });
+    }
+  }
+  return fail_('ERR-004', 'Registration not found.');
+}
+
+function handleParticipants_(p) {
+  var required = String(getConfig_('api_key', '')).trim();
+  if (required && String(p.key || '').trim() !== required) {
+    logAudit_('Activity', 'participants', 'DENIED', '');
+    return fail_('ERR-003', 'Invalid or missing key.');
+  }
+  var activityId = String(p.activity || '').trim();
+  if (!activityId) return fail_('ERR-001', 'activity is required.');
+  var list = readRegistrations_()
+    .filter(function (r) { return r.activityId === activityId; })
+    .map(function (r) {
+      return {
+        registrationId: r.rid, roll: r.roll, name: r.name,
+        section: r.section, branch: r.branch, email: r.email,
+        phone: r.phone, course: r.course, semester: r.semester,
+        specialisation: r.specialisation, status: r.status,
+        registeredOn: r.ts ? r.ts.toISOString() : ''
+      };
+    });
+  return ok_(list);
+}
+
+
+/* ==================== MODULE 4 — DASHBOARD HANDLERS ====================== */
+
+/* ---- tag_mastery (NEW v1.6) --------------------------------------------- */
+/* Returns cohort-level accuracy per topic tag, sorted hardest first.         */
+/* ?cohort=BTECH_SEM7_2025 &quiz=MATLAB (optional prefix filter)              */
+function handleTagMastery_(p) {
+  var cohort = String(p.cohort || '').trim();
+  var quiz   = String(p.quiz   || '').trim().toLowerCase();
+
+  var rows = readResponses_().filter(function (r) {
+    if (cohort && r.cohortId !== cohort) return false;
+    if (quiz   && r.quiz.toLowerCase().indexOf(quiz) === -1) return false;
+    return true;
+  });
+  if (!rows.length) return ok_([]);
+
+  var tagStats = {};
+  rows.forEach(function (r) {
+    var tags = parseArr_(r.tagsJson);
+    var corr = parseArr_(r.correctJson);
+    for (var i = 0; i < tags.length; i++) {
+      var tg = tags[i]; if (!tg) continue;
+      if (!tagStats[tg]) tagStats[tg] = { correct: 0, total: 0 };
+      tagStats[tg].total++;
+      if (Number(corr[i]) === 1) tagStats[tg].correct++;
+    }
+  });
+
+  var result = Object.keys(tagStats).map(function (t) {
+    var s = tagStats[t];
+    return {
+      tag:          t,
+      correct:      s.correct,
+      total:        s.total,
+      accuracy_pct: Math.round(100 * s.correct / s.total)
+    };
+  }).sort(function (a, b) { return a.accuracy_pct - b.accuracy_pct; }); // hardest first
+
+  return ok_(result);
+}
+
+/* ---- cohort_summary (NEW v1.6) ------------------------------------------ */
+/* Per-quiz aggregate stats for faculty dashboard main table.                  */
+/* ?cohort=BTECH_SEM7_2025 (optional) &key=api_key                            */
+function handleCohortSummary_(p) {
+  var required = String(getConfig_('api_key', '')).trim();
+  if (required && String(p.key || '').trim() !== required) {
+    logAudit_('Dashboard', 'cohort_summary', 'DENIED', '');
+    return fail_('ERR-003', 'Invalid or missing key.');
+  }
+  var cohort = String(p.cohort || '').trim();
+
+  var rows = readResponses_().filter(function (r) {
+    return !cohort || r.cohortId === cohort;
+  });
+  if (!rows.length) return ok_([]);
+
+  var quizMap = {};
+  rows.forEach(function (r) {
+    var key = r.quiz + '::' + r.cohortId;
+    if (!quizMap[key]) quizMap[key] = {
+      quizId:   r.quiz,
+      cohortId: r.cohortId,
+      mode:     r.mode,
+      attempts: 0, pctSum: 0, passes: 0,
+      tagStats: {}, lastSeen: null
+    };
+    var q = quizMap[key];
+    q.attempts++; q.pctSum += r.pct;
+    if (String(r.passed).toLowerCase() === 'true') q.passes++;
+    if (r.ts && (!q.lastSeen || r.ts > q.lastSeen)) q.lastSeen = r.ts;
+
+    /* accumulate tag stats for this quiz */
+    var tags = parseArr_(r.tagsJson);
+    var corr = parseArr_(r.correctJson);
+    for (var i = 0; i < tags.length; i++) {
+      var tg = tags[i]; if (!tg) continue;
+      if (!q.tagStats[tg]) q.tagStats[tg] = { c: 0, t: 0 };
+      q.tagStats[tg].t++;
+      if (Number(corr[i]) === 1) q.tagStats[tg].c++;
+    }
+  });
+
+  var list = Object.keys(quizMap).map(function (k) {
+    var q = quizMap[k];
+    var avgPct   = Math.round(q.pctSum / q.attempts);
+    var passRate = Math.round(100 * q.passes / q.attempts);
+
+    /* find top & hardest tag */
+    var tags = Object.keys(q.tagStats);
+    var sorted = tags.map(function (t) {
+      return { tag: t, pct: Math.round(100 * q.tagStats[t].c / q.tagStats[t].t) };
+    }).sort(function (a, b) { return b.pct - a.pct; });
+    var topTag     = sorted.length   ? sorted[0].tag                    : '';
+    var hardestTag = sorted.length   ? sorted[sorted.length-1].tag      : '';
+
+    return {
+      quizId:      q.quizId,
+      cohortId:    q.cohortId,
+      mode:        q.mode,
+      attempts:    q.attempts,
+      avgPct:      avgPct,
+      passRate:    passRate,
+      topTag:      topTag,
+      hardestTag:  hardestTag,
+      lastSeen:    q.lastSeen ? q.lastSeen.toISOString() : ''
+    };
+  }).sort(function (a, b) { return (b.lastSeen > a.lastSeen) ? 1 : -1; });
+
+  return ok_(list);
+}
+
+/* ---- student_list_v2 (NEW v1.6) ----------------------------------------- */
+/* Extended list with branch/semester/section filters for dashboard.           */
+function handleStudentListV2_(p) {
+  var required = String(getConfig_('api_key', '')).trim();
+  if (required && String(p.key || '').trim() !== required) {
+    logAudit_('Dashboard', 'student_list_v2', 'DENIED', '');
+    return fail_('ERR-003', 'Invalid or missing key.');
+  }
+
+  var cohort   = String(p.cohort   || '').trim();
+  var branch   = String(p.branch   || '').trim().toLowerCase();
+  var semester = String(p.semester || '').trim().toLowerCase();
+  var section  = String(p.section  || '').trim().toLowerCase();
+  var quiz     = String(p.quiz     || '').trim().toLowerCase();
+
+  var rows = readResponses_().filter(function (r) {
+    if (cohort   && r.cohortId !== cohort) return false;
+    if (branch   && String(r.branch  ||'').toLowerCase().indexOf(branch)   === -1) return false;
+    if (semester && String(r.semester||'').toLowerCase().indexOf(semester) === -1) return false;
+    if (section  && String(r.section ||'').toLowerCase().indexOf(section)  === -1) return false;
+    if (quiz     && r.quiz.toLowerCase().indexOf(quiz) === -1) return false;
+    return true;
+  });
+  if (!rows.length) return ok_([]);
+
+  var map = {};
+  rows.forEach(function (r) {
+    if (!r.roll) return;
+    if (!map[r.roll]) map[r.roll] = {
+      roll: r.roll, name: r.name, section: r.section,
+      branch: r.branch, semester: r.semester, cohortId: r.cohortId,
+      attempts: 0, quizzes: {}, pctSum: 0,
+      tagStats: {}, lastSeen: null
+    };
+    var m = map[r.roll];
+    m.attempts++; m.quizzes[r.quiz] = true; m.pctSum += r.pct;
+    m.name     = r.name     || m.name;
+    m.section  = r.section  || m.section;
+    m.branch   = r.branch   || m.branch;
+    m.semester = r.semester || m.semester;
+    if (r.ts && (!m.lastSeen || r.ts > m.lastSeen)) m.lastSeen = r.ts;
+
+    var tags = parseArr_(r.tagsJson);
+    var corr = parseArr_(r.correctJson);
+    for (var i = 0; i < tags.length; i++) {
+      var tg = tags[i]; if (!tg) continue;
+      if (!m.tagStats[tg]) m.tagStats[tg] = { c: 0, t: 0 };
+      m.tagStats[tg].t++;
+      if (Number(corr[i]) === 1) m.tagStats[tg].c++;
+    }
+  });
+
+  var list = Object.keys(map).map(function (k) {
+    var m = map[k];
+    var avgPct = Math.round(m.pctSum / m.attempts);
+    var weakTags = Object.keys(m.tagStats).map(function (t) {
+      return { tag: t, pct: Math.round(100 * m.tagStats[t].c / m.tagStats[t].t) };
+    }).sort(function (a, b) { return a.pct - b.pct; }).slice(0, 3);
+
+    return {
+      roll: m.roll, name: m.name, section: m.section,
+      branch: m.branch, semester: m.semester, cohortId: m.cohortId,
+      quizzes: Object.keys(m.quizzes).length,
+      attempts: m.attempts, avgPct: avgPct,
+      weakTags: weakTags,
+      lastSeen: m.lastSeen ? m.lastSeen.toISOString() : ''
+    };
+  }).sort(function (a, b) { return a.avgPct - b.avgPct; }); // weakest first for intervention
+
+  return ok_(list);
+}
+
+
+/* ==================== SHARED READERS ==================================== */
+
+function readResponses_() {
+  var sh = ss_().getSheetByName(SGIF.SHEETS.RESPONSES);
+  if (!sh || sh.getLastRow() <= 1) return [];
+  var values = sh.getDataRange().getValues();
+  var H = RESPONSE_HEADERS_();
+  var ix = function (n) { return H.indexOf(n); };
+  var out = [];
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    out.push({
+      ts:           (row[ix('Timestamp')] instanceof Date) ? row[ix('Timestamp')] : null,
+      submissionId: String(row[ix('Submission ID')] || ''),
+      sessionId:    String(row[ix('Session_ID')]    || ''),
+      quiz:         String(row[ix('Quiz_ID')]        || '').trim(),
+      cohortId:     String(row[ix('Cohort_ID')]      || ''),
+      name:         row[ix('Name')],
+      roll:         String(row[ix('Roll Number')]    || '').trim().toUpperCase(),
+      section:      row[ix('Section')],
+      branch:       String(row[ix('Branch')]         || ''),
+      semester:     String(row[ix('Semester')]       || ''),
+      mode:         row[ix('Mode')],
+      score:        Number(row[ix('Score Raw')])      || 0,
+      scoreWeighted:Number(row[ix('Score Weighted')]) || 0,
+      total:        Number(row[ix('Total')])          || 0,
+      scoreMax:     Number(row[ix('Score Max')])      || 0,
+      pct:          Number(row[ix('Percentage')])     || 0,
+      grade:        row[ix('Grade')],
+      passed:       row[ix('Passed')],
+      timeTaken:    row[ix('Time Taken')],
+      tagsJson:     row[ix('Tags (JSON)')],
+      confJson:     row[ix('Confidence (JSON)')],
+      correctJson:  row[ix('Correct (JSON)')]
+    });
+  }
+  return out;
+}
+
+function readActivities_() {
+  var sh = ss_().getSheetByName(SGIF.SHEETS.ACTIVITIES);
+  if (!sh || sh.getLastRow() <= 1) return [];
+  var values = sh.getDataRange().getValues();
+  var H = ACTIVITY_HEADERS_();
+  var ix = function (n) { return H.indexOf(n); };
+  var out = [];
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    var id = String(row[ix('Activity_ID')] || '').trim();
+    if (!id) continue;
+    out.push({
+      id: id, title: String(row[ix('Title')] || ''),
+      type: String(row[ix('Type')] || ''),
+      description: String(row[ix('Description')] || ''),
+      venue: String(row[ix('Venue')] || ''),
+      date:     (row[ix('Activity Date')] instanceof Date) ? row[ix('Activity Date')] : null,
+      regStart: (row[ix('Reg Start')]     instanceof Date) ? row[ix('Reg Start')]     : null,
+      regEnd:   (row[ix('Reg End')]       instanceof Date) ? row[ix('Reg End')]       : null,
+      capacity: Number(row[ix('Capacity')]) || 0,
+      status:   String(row[ix('Status')]  || '').trim().toUpperCase(),
+      eligibility: String(row[ix('Eligibility')] || ''),
+      quizIds:  String(row[ix('Quiz_IDs')] || '').split(',')
+                  .map(function (s) { return s.trim(); }).filter(String),
+      cohortId: String(row[ix('Cohort_ID')] || '')
+    });
+  }
+  return out;
+}
+
+function readRegistrations_() {
+  var sh = ss_().getSheetByName(SGIF.SHEETS.REGISTRATIONS);
+  if (!sh || sh.getLastRow() <= 1) return [];
+  var values = sh.getDataRange().getValues();
+  var H = REGISTRATION_HEADERS_();
+  var ix = function (n) { return H.indexOf(n); };
+  var out = [];
+  for (var r = 1; r < values.length; r++) {
+    var row = values[r];
+    out.push({
+      ts:             (row[ix('Timestamp')] instanceof Date) ? row[ix('Timestamp')] : null,
+      rid:            String(row[ix('Registration_ID')] || ''),
+      activityId:     String(row[ix('Activity_ID')]     || '').trim(),
+      roll:           String(row[ix('Roll Number')]      || '').trim().toUpperCase(),
+      name:           row[ix('Name')],
+      section:        row[ix('Section')],
+      branch:         row[ix('Branch')],
+      email:          String(row[ix('Email')]            || ''),
+      phone:          String(row[ix('Phone')]            || ''),
+      course:         String(row[ix('Course')]           || ''),
+      semester:       row[ix('Semester')],
+      specialisation: String(row[ix('Specialisation')]   || ''),
+      status:         String(row[ix('Status')]           || '')
+    });
+  }
+  return out;
+}
+
+function countActiveRegs_() {
+  var counts = {};
+  readRegistrations_().forEach(function (r) {
+    if (r.status !== 'Registered') return;
+    counts[r.activityId] = (counts[r.activityId] || 0) + 1;
+  });
+  return counts;
+}
+
+
+/* ==================== CONFIG / AUDIT / HELPERS =========================== */
+
+function getAllConfig_() {
+  var sh = getSheet_(SGIF.SHEETS.CONFIG, ['Key','Value','Description','UpdatedOn']);
+  if (sh.getLastRow() <= 1) return {};
+  var values = sh.getDataRange().getValues();
+  var out = {};
+  for (var r = 1; r < values.length; r++) {
+    var key = String(values[r][0]).trim();
+    if (key && key !== 'api_key') out[key] = values[r][1];
+  }
+  return out;
+}
+
+function getConfig_(key, fallback) {
+  var sh = ss_().getSheetByName(SGIF.SHEETS.CONFIG);
+  if (!sh || sh.getLastRow() <= 1) return fallback;
+  var values = sh.getDataRange().getValues();
+  for (var r = 1; r < values.length; r++) {
+    if (String(values[r][0]).trim() === key) return values[r][1];
+  }
+  return fallback;
+}
+
+function logAudit_(module, action, status, remarks) {
+  try {
+    var sh = getSheet_(SGIF.SHEETS.AUDIT,
+      ['Timestamp','Module','Action','Status','Remarks']);
+    sh.appendRow([new Date(), module, action, status, remarks || '']);
+  } catch (ignore) {}
+}
+
+function ss_()  { return SpreadsheetApp.getActiveSpreadsheet(); }
+
+function getSheet_(name, headers) {
+  var ss = ss_();
+  var sh = ss.getSheetByName(name);
+  if (!sh) sh = ss.insertSheet(name);
+  if (sh.getLastRow() === 0 && headers && headers.length) {
+    sh.appendRow(headers);
+    sh.getRange(1, 1, 1, headers.length)
+      .setBackground('#2563eb').setFontColor('#ffffff').setFontWeight('bold');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+function ok_(data) {
+  return json_({ success:true, message:'OK', data:data, errors:[], meta:meta_() });
+}
+function fail_(code, message) {
+  return json_({ success:false, message:message, data:null,
+    errors:[{code:code, message:message}], meta:meta_() });
+}
+function meta_()  { return { timestamp:new Date().toISOString(), version:SGIF.VERSION }; }
+function json_(o) {
+  return ContentService.createTextOutput(JSON.stringify(o))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function safe_(v)       { return (v===undefined||v===null)?'':v; }
+function numOr_(v,dflt) { var n=Number(v); return isNaN(n)?dflt:n; }
+function uniq_(arr)     {
+  var seen={},out=[];
+  arr.forEach(function(x){if(!seen[x]){seen[x]=1;out.push(x);}});
+  return out;
+}
+function parseArr_(s) {
+  try { var a=JSON.parse(s); return Array.isArray(a)?a:[]; } catch(e){return [];} }
+function firstNonEmpty_(a,b) {
+  if(a&&a.length) return a; if(b&&b.length) return b; return []; }
+function collectIndexed_(obj,prefix) {
+  var pairs=[];
+  Object.keys(obj).forEach(function(k){
+    if(k.indexOf(prefix)===0){
+      var n=parseInt(k.slice(prefix.length),10);
+      if(!isNaN(n)) pairs.push([n,obj[k]]);
+    }
+  });
+  pairs.sort(function(a,b){return a[0]-b[0];});
+  return pairs.map(function(p){return p[1];});
+}
+
+
+/* ==================== HEADER DEFINITIONS ================================= */
+
+function RESPONSE_HEADERS_() {
+  return [
+    'Timestamp','Submission ID','Session_ID','Quiz_ID','Cohort_ID',
+    'Name','Roll Number','Section','Branch','Semester','Mode',
+    'Score Raw','Score Weighted','Total','Score Max',
+    'Percentage','Grade','Passed','Time Taken','Submitted At',
+    'Section Scores (JSON)','Difficulty Scores (JSON)',
+    'Tags (JSON)','Confidence (JSON)','Correct (JSON)'
+  ];
+}
+function EVENT_HEADERS_() {
+  return [
+    'Server_TS','Session_ID','Event_ID','Quiz_ID','Student_ID',
+    'Question_ID','Event_Type','Event_Value','Client_TS','Elapsed_MS'
+  ];
+}
+function STUDENT_HEADERS_() {
+  return [
+    'Roll Number','Name','Section','Branch','Semester',
+    'Cohort_ID','Status','Notes','UpdatedOn'
+  ];
+}
+function ACTIVITY_HEADERS_() {
+  return [
+    'Activity_ID','Title','Type','Description','Venue',
+    'Activity Date','Reg Start','Reg End','Capacity','Status',
+    'Eligibility','Quiz_IDs','Cohort_ID','Notes','UpdatedOn'
+  ];
+}
+function REGISTRATION_HEADERS_() {
+  return [
+    'Timestamp','Registration_ID','Activity_ID','Roll Number','Name',
+    'Section','Branch','Email','Phone','Course',
+    'Semester','Specialisation','Status','Cancelled On'
+  ];
+}
+
+
+/* ==================== MODULE 5 — EVENTS HUB ============================== */
+
+/* ---- league_standings (NEW v1.7) ----------------------------------------
+   Season-long standing across ALL event quizzes for a cohort.
+   Only EVENT-mode rows counted — lecture/lab attempts excluded.
+   ?cohort=SGT_LEAGUE_2025  (optional — returns all cohorts if omitted)
+   ?top=10                  (default 10, max 50)
+   Public — no api_key required.
+   Returns per student:
+     roll, name, section, eventsPlayed, formatsPlayed, avgPct,
+     totalWeighted, scoreMax, bestGrade, lastSeen
+------------------------------------------------------------------------- */
+function handleLeagueStandings_(p) {
+  var cohort = String(p.cohort || '').trim();
+  var top    = Math.min(parseInt(p.top, 10) || 10, 50);
+
+  var rows = readResponses_().filter(function (r) {
+    var isEvent = String(r.mode || '').toUpperCase() === 'EVENT';
+    if (!isEvent) return false;
+    if (cohort && r.cohortId !== cohort) return false;
+    return true;
+  });
+  if (!rows.length) return ok_([]);
+
+  var map = {};
+  rows.forEach(function (r) {
+    if (!r.roll) return;
+    if (!map[r.roll]) map[r.roll] = {
+      roll: r.roll, name: r.name, section: r.section,
+      quizzes: {}, formats: {}, pctSum: 0, attempts: 0,
+      totalWeighted: 0, scoreMax: 0,
+      bestPct: 0, bestGrade: 'F', lastSeen: null
+    };
+    var m = map[r.roll];
+    m.attempts++;
+    m.quizzes[r.quiz] = true;
+
+    /* derive format brand from Quiz_ID prefix
+       CC-01 → CC, APT-01 → APT, SHR-01 → SHR etc. */
+    var brand = r.quiz.replace(/-\d+$/, '');
+    m.formats[brand] = true;
+
+    m.pctSum       += r.pct;
+    m.totalWeighted+= (r.scoreWeighted || r.score || 0);
+    m.scoreMax     += (r.scoreMax || r.total || 0);
+    m.name          = r.name    || m.name;
+    m.section       = r.section || m.section;
+
+    if (r.pct > m.bestPct) {
+      m.bestPct   = r.pct;
+      m.bestGrade = r.grade || m.bestGrade;
+    }
+    if (r.ts && (!m.lastSeen || r.ts > m.lastSeen)) m.lastSeen = r.ts;
+  });
+
+  var list = Object.keys(map).map(function (k) {
+    var m = map[k];
+    var eventsPlayed  = Object.keys(m.quizzes).length;
+    var formatsPlayed = Object.keys(m.formats).length;
+    var avgPct        = Math.round(m.pctSum / m.attempts);
+    var overallPct    = m.scoreMax > 0
+      ? Math.round(100 * m.totalWeighted / m.scoreMax) : 0;
+    return {
+      roll:           m.roll,
+      name:           m.name,
+      section:        m.section,
+      eventsPlayed:   eventsPlayed,
+      formatsPlayed:  formatsPlayed,
+      avgPct:         avgPct,
+      overallPct:     overallPct,
+      totalWeighted:  m.totalWeighted,
+      scoreMax:       m.scoreMax,
+      bestGrade:      m.bestGrade,
+      lastSeen:       m.lastSeen ? m.lastSeen.toISOString() : ''
+    };
+  }).sort(function (a, b) {
+    /* Primary: total weighted marks (rewards participation breadth)
+       Secondary: overall pct (rewards quality)
+       Tertiary: formats played (rewards diversity) */
+    return (b.totalWeighted - a.totalWeighted)
+        || (b.overallPct   - a.overallPct)
+        || (b.formatsPlayed- a.formatsPlayed);
+  }).slice(0, top);
+
+  return ok_(list);
+}
+
+
+/* ==================== ONE-TIME SETUP ===================================== */
+function setup() {
+  getSheet_(SGIF.SHEETS.CONFIG,        ['Key','Value','Description','UpdatedOn']);
+  getSheet_(SGIF.SHEETS.AUDIT,         ['Timestamp','Module','Action','Status','Remarks']);
+  getSheet_(SGIF.SHEETS.RESPONSES,     RESPONSE_HEADERS_());
+  getSheet_(SGIF.SHEETS.EVENTS,        EVENT_HEADERS_());
+  getSheet_(SGIF.SHEETS.STUDENTS,      STUDENT_HEADERS_());
+  getSheet_(SGIF.SHEETS.ACTIVITIES,    ACTIVITY_HEADERS_());
+  getSheet_(SGIF.SHEETS.REGISTRATIONS, REGISTRATION_HEADERS_());
+
+  var cfg = ss_().getSheetByName(SGIF.SHEETS.CONFIG);
+  if (cfg.getLastRow() <= 1) {
+    cfg.appendRow(['institution',             'SGT University', 'Shown in headers',                     new Date()]);
+    cfg.appendRow(['faculty_name',            'K.P. Singh',     'Faculty owner',                        new Date()]);
+    cfg.appendRow(['default_leaderboard_size','5',              'Top-N students',                       new Date()]);
+    cfg.appendRow(['api_key',                 '',               'SET THIS — gates dashboard & exports', new Date()]);
+  }
+  logAudit_('Foundation','setup','OK','Tabs verified (v'+SGIF.VERSION+')');
+  return 'SGIF setup complete (v'+SGIF.VERSION+'). All tabs verified. New: league_standings endpoint.';
+}
