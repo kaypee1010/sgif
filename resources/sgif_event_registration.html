@@ -1,0 +1,627 @@
+```jsx
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Events &amp; Competitions — K.P. Singh · SGT University</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── DESIGN TOKENS ─────────────────────────────────────── */
+:root {
+  --accent:      #2563eb;
+  --accent-pale: #dbeafe;
+  --accent-mid:  #3b82f6;
+  --accent-deep: #1d4ed8;
+  --ink:         #1e293b;
+  --ink-soft:    #64748b;
+  --slate:       #475569;
+  --paper:       #f8fafc;
+  --cream:       #f1f5f9;
+  --line:        #e2e8f0;
+  --line-strong: #cbd5e1;
+  --green:       #059669;
+  --green-pale:  #ecfdf5;
+  --rose:        #e11d48;
+  --rose-pale:   #ffe4e6;
+  --amber:       #b45309;
+  --amber-pale:  #fef3c7;
+  --violet:      #7c3aed;
+  --violet-pale: #ede9fe;
+  --radius:      8px;
+  --radius-lg:   12px;
+  --mono:        'JetBrains Mono', monospace;
+  --shadow-sm:   0 1px 3px rgba(30,41,59,.07), 0 1px 2px rgba(30,41,59,.04);
+  --shadow-md:   0 4px 12px rgba(30,41,59,.08), 0 2px 4px rgba(30,41,59,.04);
+}
+
+/* ── RESET & BASE ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: linear-gradient(150deg, var(--paper) 0%, #eef2f7 100%);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15.5px;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+/* grain overlay */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+  opacity: .4;
+}
+/* diagonal accent stripe */
+body::after {
+  content: '';
+  position: fixed; top: 0; right: 0; z-index: 0; pointer-events: none;
+  width: 300px; height: 300px;
+  background: repeating-linear-gradient(
+    45deg, var(--accent), var(--accent) 1px,
+    transparent 1px, transparent 20px
+  );
+  opacity: .03;
+}
+
+/* ── NAV ────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  background: rgba(248,250,252,.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  padding: 11px 28px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-brand { display: flex; align-items: center; gap: 12px; }
+.nav-logo {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Serif Display', serif; font-size: 17px;
+  flex-shrink: 0;
+}
+.nav-name  { font-family: 'DM Serif Display', serif; font-size: 16px; line-height: 1.2; }
+.nav-sub   { font-family: var(--mono); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); }
+.nav-links { display: flex; align-items: center; gap: 8px; }
+.nav-cta {
+  font-family: var(--mono); font-size: 11.5px; font-weight: 600;
+  background: var(--accent); color: #fff;
+  padding: 7px 16px; border-radius: 20px; text-decoration: none;
+  transition: background .15s;
+}
+.nav-cta:hover { background: var(--accent-deep); }
+.nav-passport {
+  font-family: var(--mono); font-size: 11.5px; font-weight: 600;
+  background: var(--violet-pale); color: var(--violet);
+  padding: 7px 14px; border-radius: 20px; text-decoration: none;
+  border: 1px solid #c4b5fd;
+  transition: background .15s;
+}
+.nav-passport:hover { background: #ddd6fe; }
+
+/* ── MAIN LAYOUT ────────────────────────────────────────── */
+main {
+  position: relative; z-index: 1;
+  max-width: 880px; margin: 0 auto;
+  padding: 106px 22px 80px;
+}
+
+/* ── PAGE HEAD ──────────────────────────────────────────── */
+.page-head { margin-bottom: 30px; }
+.eyebrow {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--ink-soft); margin-bottom: 4px;
+}
+h1 {
+  font-family: 'DM Serif Display', serif; font-weight: 400;
+  font-size: 34px; margin: 0 0 8px; line-height: 1.15;
+}
+h1 em { font-style: italic; color: var(--accent); }
+.lede { color: var(--ink-soft); font-size: 14.5px; margin: 0; max-width: 560px; }
+
+/* ── BRAND FILTER BAR ───────────────────────────────────── */
+.filter-bar {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px;
+}
+.filter-btn {
+  font-family: var(--mono); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .04em;
+  padding: 6px 14px; border-radius: 20px; border: 1px solid var(--line);
+  background: #fff; color: var(--ink-soft); cursor: pointer;
+  transition: all .15s;
+}
+.filter-btn:hover  { border-color: var(--accent); color: var(--accent); }
+.filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── MY-REGISTRATIONS BAR ───────────────────────────────── */
+.myreg-bar {
+  display: flex; gap: 10px; align-items: center;
+  background: #fff; border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 12px 16px;
+  margin-bottom: 28px; flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+}
+.myreg-bar label {
+  font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+  color: var(--ink-soft); white-space: nowrap; letter-spacing: .05em;
+}
+.myreg-bar input {
+  flex: 1; min-width: 190px; padding: 9px 12px;
+  border: 1px solid var(--line); border-radius: 6px;
+  font-family: var(--mono); font-size: 13px; text-transform: uppercase;
+  transition: border-color .15s, box-shadow .15s;
+}
+.myreg-bar input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-pale);
+}
+
+/* ── BUTTONS ────────────────────────────────────────────── */
+.btn {
+  padding: 9px 18px; border: 1px solid var(--accent);
+  border-radius: 6px; background: var(--accent); color: #fff;
+  font-family: 'DM Sans', sans-serif; font-size: 13.5px; font-weight: 600;
+  cursor: pointer; transition: background .15s, transform .1s;
+}
+.btn:hover   { background: var(--accent-deep); }
+.btn:active  { transform: scale(.98); }
+.btn.ghost   { background: #fff; color: var(--accent); }
+.btn.ghost:hover { background: var(--accent-pale); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── MY-REGS PANEL ──────────────────────────────────────── */
+.myregs {
+  display: none; background: #fff; border: 1px solid var(--line);
+  border-radius: var(--radius-lg); padding: 20px 22px;
+  margin-bottom: 28px; box-shadow: var(--shadow-sm);
+}
+.myregs.show  { display: block; }
+.myregs h3    { font-family: 'DM Serif Display', serif; font-size: 18px; margin: 0 0 14px; }
+.mr-row {
+  display: flex; justify-content: space-between; gap: 12px;
+  align-items: center; padding: 10px 0;
+  border-bottom: 1px solid var(--line); font-size: 13.5px; flex-wrap: wrap;
+}
+.mr-row:last-child { border-bottom: none; }
+.mr-rid { font-family: var(--mono); font-size: 10.5px; color: var(--ink-soft); margin-top: 2px; }
+.pill { padding: 3px 10px; border-radius: 11px; font-size: 11px; font-weight: 600; }
+.pill.reg { background: var(--green-pale); color: var(--green); }
+.pill.can { background: var(--cream); color: var(--ink-soft); }
+.link-danger {
+  background: none; border: none; color: var(--rose);
+  font-size: 12.5px; font-weight: 600; cursor: pointer; text-decoration: underline;
+}
+
+/* ── ACTIVITY CARDS ─────────────────────────────────────── */
+.cards { display: flex; flex-direction: column; gap: 20px; }
+
+/* brand accent colours per Type */
+.card[data-type="CodeChamps"]      { --card-accent: #2563eb; }
+.card[data-type="Aptitude Arena"]  { --card-accent: #059669; }
+.card[data-type="Detective Sherlock"] { --card-accent: #b45309; }
+.card[data-type="Query Quest"]     { --card-accent: #7c3aed; }
+.card[data-type="Mind & Machine"]  { --card-accent: #0891b2; }
+
+.card {
+  background: #fff; border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  border-top: 5px solid var(--card-accent, var(--accent));
+  box-shadow: var(--shadow-md); overflow: hidden;
+  transition: box-shadow .2s;
+}
+.card:hover { box-shadow: 0 8px 24px rgba(30,41,59,.11); }
+
+.card-body { padding: 22px 26px; }
+.card-top {
+  display: flex; justify-content: space-between;
+  gap: 14px; align-items: flex-start; flex-wrap: wrap;
+}
+.a-title { font-family: 'DM Serif Display', serif; font-size: 22px; margin: 0 0 3px; line-height: 1.2; }
+.a-meta  { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); }
+
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.chip {
+  font-family: var(--mono); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+  padding: 4px 10px; border-radius: 12px;
+}
+.chip.type   { background: color-mix(in srgb, var(--card-accent,var(--accent)) 12%, white); color: var(--card-accent, var(--accent)); }
+.chip.open   { background: var(--green-pale); color: var(--green); }
+.chip.full   { background: var(--rose-pale);  color: var(--rose); }
+.chip.closed { background: var(--cream);      color: var(--ink-soft); }
+.chip.done   { background: #f0fdf4;           color: #166534; }
+
+.a-desc { font-size: 14px; color: var(--slate); margin: 14px 0 12px; line-height: 1.6; }
+.a-elig {
+  display: inline-block; font-size: 12px;
+  color: var(--amber); background: var(--amber-pale);
+  padding: 4px 10px; border-radius: 6px; margin-bottom: 14px;
+}
+
+.seats { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.seats-bar {
+  flex: 1; max-width: 200px; height: 6px;
+  background: var(--line); border-radius: 4px; overflow: hidden;
+}
+.seats-fill {
+  height: 100%; border-radius: 4px;
+  background: var(--card-accent, var(--accent));
+  transition: width .4s ease;
+}
+.seats-txt { font-family: var(--mono); font-size: 11.5px; color: var(--ink-soft); }
+
+/* ── REGISTRATION FORM ──────────────────────────────────── */
+.reg-form {
+  display: none; border-top: 1px dashed var(--line);
+  padding-top: 18px; margin-top: 6px;
+}
+.reg-form.show { display: block; }
+.rf-label {
+  font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--ink-soft); margin-bottom: 10px;
+}
+.rf-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;
+}
+.rf-grid input {
+  padding: 10px 13px; border: 1px solid var(--line);
+  border-radius: 6px; font-family: 'DM Sans', sans-serif;
+  font-size: 14px; width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+}
+.rf-grid input:focus {
+  outline: none; border-color: var(--card-accent, var(--accent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--card-accent,var(--accent)) 15%, white);
+}
+.rf-grid input::placeholder { color: var(--ink-soft); }
+
+.msg { display: none; padding: 12px 15px; border-radius: 7px; font-size: 13.5px; margin-top: 12px; }
+.msg.show { display: block; }
+.msg.ok  { background: var(--green-pale); color: var(--green); border-left: 3px solid var(--green); }
+.msg.err { background: var(--rose-pale);  color: var(--rose);  border-left: 3px solid var(--rose); }
+.msg .rid { font-family: var(--mono); font-weight: 700; word-break: break-all; }
+
+/* ── LOADING / EMPTY ────────────────────────────────────── */
+.loading, .empty {
+  padding: 48px; text-align: center; color: var(--ink-soft);
+  background: #fff; border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+/* ── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .rf-grid { grid-template-columns: 1fr; }
+  main { padding-top: 94px; }
+  h1 { font-size: 26px; }
+  .nav-passport { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAV ═══════════════════════════════════════════════ -->
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">KP</div>
+    <div>
+      <div class="nav-name">K.P. Singh</div>
+      <div class="nav-sub">SGT University · Events &amp; Competitions</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-passport" href="passport.html">🎓 My Growth Passport</a>
+    <a class="nav-cta" href="https://kpsingh.in" target="_blank" rel="noopener">kpsingh.in ↗</a>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══════════════════════════════════════════════ -->
+<main>
+
+  <!-- Page header -->
+  <div class="page-head">
+    <div class="eyebrow">Student Growth Intelligence · SGIF</div>
+    <h1>Events &amp; <em>Competitions</em></h1>
+    <p class="lede">
+      Register for an upcoming event below. Every event you play counts towards your
+      Growth Passport — the quiz you take on event day is your attendance record.
+    </p>
+  </div>
+
+  <!-- Brand filter -->
+  <div class="filter-bar" id="filter-bar">
+    <button class="filter-btn active" data-type="ALL" onclick="setFilter(this)">All formats</button>
+    <button class="filter-btn" data-type="CodeChamps"         onclick="setFilter(this)">⚔️ CodeChamps</button>
+    <button class="filter-btn" data-type="Aptitude Arena"     onclick="setFilter(this)">🧮 Aptitude Arena</button>
+    <button class="filter-btn" data-type="Detective Sherlock" onclick="setFilter(this)">🕵️ Detective Sherlock</button>
+    <button class="filter-btn" data-type="Query Quest"        onclick="setFilter(this)">🗄️ Query Quest</button>
+    <button class="filter-btn" data-type="Mind & Machine"     onclick="setFilter(this)">🤖 Mind &amp; Machine</button>
+  </div>
+
+  <!-- My-registrations lookup -->
+  <div class="myreg-bar">
+    <label for="mr-roll">My registrations</label>
+    <input id="mr-roll" placeholder="ENTER ROLL NUMBER"
+           onkeydown="if(event.key==='Enter') loadMyRegs()">
+    <button class="btn ghost" onclick="loadMyRegs()">Check →</button>
+  </div>
+  <div class="myregs" id="myregs"></div>
+
+  <!-- Activity cards -->
+  <div class="cards" id="cards">
+    <div class="loading">Loading events…</div>
+  </div>
+
+</main>
+
+<!-- ═══ SCRIPT ═════════════════════════════════════════════ -->
+<script>
+/* ============================================================
+   SGIF EVENTS PAGE  —  Module 3  —  Student-facing
+   One permanent file. Data comes from the Foundation API.
+   Never regenerated between episodes — add a row in the
+   Activities tab and this page discovers it automatically.
+
+   SETUP: paste your Foundation /exec URL below.
+   ============================================================ */
+
+const API_URL = 'PASTE_YOUR_FOUNDATION_EXEC_URL_HERE';
+
+/* ---- active filter ---- */
+let activeFilter = 'ALL';
+let allActivities = [];
+
+function setFilter(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.type;
+  renderCards(allActivities);
+}
+
+/* ---- generic GET helper ---- */
+async function apiGet(params) {
+  const qs = Object.entries(params)
+    .map(([k,v]) => k + '=' + encodeURIComponent(v)).join('&');
+  const url = API_URL + (API_URL.includes('?') ? '&' : '?') + qs;
+  const res = await fetch(url);
+  const j   = await res.json();
+  if (!j.success) throw new Error(j.message || 'Request failed');
+  return j.data;
+}
+
+/* ---- load activities ---- */
+async function loadActivities() {
+  const wrap = document.getElementById('cards');
+  try {
+    allActivities = await apiGet({ action: 'activities' });
+    renderCards(allActivities);
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">⚠️</div>Couldn\'t load events. Please refresh or try again later.</div>';
+  }
+}
+
+function renderCards(acts) {
+  const wrap = document.getElementById('cards');
+  const filtered = activeFilter === 'ALL'
+    ? acts
+    : acts.filter(a => a.type === activeFilter);
+
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>No events in this category yet — check back soon.</div>';
+    return;
+  }
+  wrap.innerHTML = filtered.map(cardHtml).join('');
+}
+
+/* ---- build one activity card ---- */
+function cardHtml(a) {
+  const dt = a.date
+    ? new Date(a.date).toLocaleDateString('en-IN',
+        { weekday:'short', day:'numeric', month:'short', year:'numeric' })
+    : 'Date TBA';
+  const regEnd = a.regEnd
+    ? new Date(a.regEnd).toLocaleString('en-IN',
+        { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
+    : '';
+  const unlimited = (a.seatsLeft === null);
+  const pctUsed   = (unlimited || !a.capacity)
+    ? 0
+    : Math.round(100 * a.registered / a.capacity);
+
+  let stateChip;
+  if      (a.regOpen)                          stateChip = '<span class="chip open">Registration open</span>';
+  else if (!unlimited && a.seatsLeft === 0)    stateChip = '<span class="chip full">Full</span>';
+  else if (a.status === 'DONE')                stateChip = '<span class="chip done">Completed</span>';
+  else                                          stateChip = '<span class="chip closed">Registration closed</span>';
+
+  const typeEmoji = {
+    'CodeChamps':         '⚔️',
+    'Aptitude Arena':     '🧮',
+    'Detective Sherlock': '🕵️',
+    'Query Quest':        '🗄️',
+    'Mind & Machine':     '🤖'
+  }[a.type] || '🏆';
+
+  return `
+  <div class="card" id="card-${esc(a.id)}" data-type="${esc(a.type)}">
+    <div class="card-body">
+      <div class="card-top">
+        <div>
+          <h2 class="a-title">${esc(a.title)}</h2>
+          <div class="a-meta">${esc(a.id)} · ${dt}${a.venue ? ' · ' + esc(a.venue) : ''}</div>
+        </div>
+        <div class="chips">
+          ${a.type ? `<span class="chip type">${typeEmoji} ${esc(a.type)}</span>` : ''}
+          ${stateChip}
+        </div>
+      </div>
+
+      ${a.description ? `<p class="a-desc">${esc(a.description)}</p>` : ''}
+      ${a.eligibility ? `<div class="a-elig">Eligibility: ${esc(a.eligibility)}</div>` : ''}
+
+      <div class="seats">
+        ${unlimited
+          ? '<span class="seats-txt">Open registration — no capacity limit</span>'
+          : `<div class="seats-bar">
+               <div class="seats-fill" style="width:${pctUsed}%"></div>
+             </div>
+             <span class="seats-txt">${a.seatsLeft} of ${a.capacity} seats left</span>`
+        }
+        ${regEnd ? `<span class="seats-txt">· closes ${regEnd}</span>` : ''}
+      </div>
+
+      ${a.regOpen ? `
+        <button class="btn" onclick="toggleForm('${esc(a.id)}')">Register →</button>
+        <div class="reg-form" id="form-${esc(a.id)}">
+          <div class="rf-label">Your details</div>
+          <div class="rf-grid">
+            <input id="f-name-${esc(a.id)}"    placeholder="Full name">
+            <input id="f-roll-${esc(a.id)}"    placeholder="Roll number (e.g. 241302001)" style="text-transform:uppercase">
+            <input id="f-section-${esc(a.id)}" placeholder="Section (e.g. E)">
+            <input id="f-branch-${esc(a.id)}"  placeholder="Branch (e.g. BTech CSE / BCA / MCA)">
+            <input id="f-sem-${esc(a.id)}"     placeholder="Semester (e.g. 5th)">
+          </div>
+          <button class="btn" id="btn-${esc(a.id)}" onclick="register('${esc(a.id)}')">
+            Confirm registration ✓
+          </button>
+          <div class="msg" id="msg-${esc(a.id)}"></div>
+        </div>
+      ` : ''}
+    </div>
+  </div>`;
+}
+
+function toggleForm(id) {
+  document.getElementById('form-' + id).classList.toggle('show');
+}
+
+/* ---- register ---- */
+async function register(id) {
+  const g    = field => document.getElementById('f-' + field + '-' + id).value.trim();
+  const name = g('name');
+  const roll = g('roll').toUpperCase();
+  const msg  = document.getElementById('msg-' + id);
+  const btn  = document.getElementById('btn-' + id);
+
+  msg.className = 'msg';
+
+  if (!name || !roll) {
+    msg.textContent = 'Name and roll number are required.';
+    msg.classList.add('show', 'err');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Registering…';
+
+  try {
+    const d = await apiGet({
+      action:   'register',
+      activity: id,
+      roll,
+      name,
+      section:  g('section'),
+      branch:   g('branch'),
+      semester: g('sem')
+    });
+
+    msg.innerHTML =
+      `✅ Registered for <b>${esc(d.activity)}</b>!` +
+      (d.seatsLeft !== null ? ` (${d.seatsLeft} seats remaining)` : '') +
+      `<br><br>Your Registration ID:<br>
+       <span class="rid">${esc(d.registrationId)}</span><br><br>
+       <small>📌 Save this ID — you need it to cancel your registration if plans change. 
+       Show it at the venue if asked.</small>`;
+    msg.classList.add('show', 'ok');
+    btn.textContent = 'Registered ✓';
+
+    // refresh seat counts after a moment
+    setTimeout(loadActivities, 3500);
+
+  } catch(e) {
+    msg.textContent = e.message;
+    msg.classList.add('show', 'err');
+    btn.disabled    = false;
+    btn.textContent = 'Confirm registration ✓';
+  }
+}
+
+/* ---- my registrations ---- */
+async function loadMyRegs() {
+  const roll = document.getElementById('mr-roll').value.trim().toUpperCase();
+  const box  = document.getElementById('myregs');
+
+  if (!roll) { box.classList.remove('show'); return; }
+
+  box.innerHTML = '<div style="color:var(--ink-soft);font-size:13px;padding:6px 0;">Loading…</div>';
+  box.classList.add('show');
+
+  try {
+    const regs = await apiGet({ action: 'my_registrations', roll });
+
+    if (!regs.length) {
+      box.innerHTML = `<h3>My Registrations</h3>
+        <div style="color:var(--ink-soft);font-size:13.5px;">
+          No registrations found for <b>${esc(roll)}</b> yet.
+        </div>`;
+      return;
+    }
+
+    box.innerHTML = `<h3>My Registrations — ${esc(roll)}</h3>` +
+      regs.map(r => {
+        const dt     = r.date ? new Date(r.date).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '';
+        const active = r.status === 'Registered';
+        return `<div class="mr-row">
+          <div>
+            <b>${esc(r.title)}</b>${dt ? ' · ' + dt : ''}${r.venue ? ' · ' + esc(r.venue) : ''}
+            <div class="mr-rid">${esc(r.registrationId)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="pill ${active ? 'reg' : 'can'}">${esc(r.status)}</span>
+            ${active
+              ? `<button class="link-danger"
+                   onclick="cancelReg('${esc(roll)}','${esc(r.registrationId)}')">
+                   Cancel
+                 </button>`
+              : ''}
+          </div>
+        </div>`;
+      }).join('');
+
+  } catch(e) {
+    box.innerHTML = `<h3>My Registrations</h3>
+      <div style="color:var(--rose);font-size:13.5px;">${esc(e.message)}</div>`;
+  }
+}
+
+/* ---- cancel registration ---- */
+async function cancelReg(roll, rid) {
+  if (!confirm('Cancel this registration? This cannot be undone.')) return;
+  try {
+    await apiGet({ action: 'cancel_registration', roll, rid });
+    loadMyRegs();
+    loadActivities();
+  } catch(e) {
+    alert(e.message);
+  }
+}
+
+/* ---- XSS escape ---- */
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/[&<>"']/g, m => ({
+      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+    }[m]));
+}
+
+/* ---- boot ---- */
+loadActivities();
+</script>
+</body>
+</html>
+```
