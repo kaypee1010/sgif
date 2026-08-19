@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event League — K.P. Singh · SGT University</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600;700&family=Inconsolata:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent:      #2563eb; --accent-pale:#dbeafe; --accent-deep:#1d4ed8;
+  --ink:         #1e293b; --ink-soft:#64748b; --slate:#475569;
+  --paper:       #f8fafc; --cream:#f1f5f9; --line:#e2e8f0; --line-strong:#cbd5e1;
+  --green:       #059669; --green-pale:#ecfdf5;
+  --rose:        #e11d48; --rose-pale:#ffe4e6;
+  --amber:       #b45309; --amber-pale:#fef3c7;
+  --violet:      #7c3aed; --violet-pale:#ede9fe;
+  --gold:        #d97706;
+  --mono:        'Inconsolata', monospace;
+  --radius:      10px; --radius-lg:16px;
+  --shadow-sm:   0 1px 4px rgba(30,41,59,.07);
+  --shadow-md:   0 4px 16px rgba(30,41,59,.10);
+  --shadow-lg:   0 8px 32px rgba(30,41,59,.13);
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'DM Sans',sans-serif; font-size:15.5px;
+  line-height:1.65; color:var(--ink);
+  background:linear-gradient(150deg,var(--paper) 0%,#eef2f7 100%);
+  min-height:100vh;
+}
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.018'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+body::after {
+  content:''; position:fixed; top:0; right:0; z-index:0; pointer-events:none;
+  width:320px; height:320px;
+  background:repeating-linear-gradient(45deg,var(--accent),var(--accent) 1px,transparent 1px,transparent 22px);
+  opacity:.03;
+}
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  background:rgba(248,250,252,.96); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line); padding:11px 26px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-brand { display:flex; align-items:center; gap:11px; }
+.nav-logo {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--accent); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'DM Serif Display',serif; font-size:16px; flex-shrink:0;
+}
+.nav-name { font-family:'DM Serif Display',serif; font-size:15.5px; line-height:1.2; }
+.nav-sub  { font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); }
+.nav-links { display:flex; gap:8px; align-items:center; }
+.nav-link {
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  padding:7px 14px; border-radius:20px; text-decoration:none;
+  border:1px solid var(--line); color:var(--ink-soft); transition:all .15s;
+}
+.nav-link:hover { border-color:var(--accent); color:var(--accent); }
+.nav-link.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+.nav-link.primary:hover { background:var(--accent-deep); }
+
+/* LAYOUT */
+main { position:relative; z-index:1; max-width:960px; margin:0 auto; padding:100px 22px 80px; }
+.section-block { margin-bottom:52px; }
+.section-head { margin-bottom:22px; }
+.section-head h2 { font-family:'DM Serif Display',serif; font-size:26px; margin-bottom:4px; }
+.section-head p  { color:var(--ink-soft); font-size:14.5px; }
+
+/* HERO */
+.hero { text-align:center; margin-bottom:44px; padding:0 16px; }
+.hero-eyebrow {
+  font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:10px;
+}
+.hero h1 {
+  font-family:'DM Serif Display',serif; font-weight:400;
+  font-size:46px; line-height:1.1; margin-bottom:14px;
+}
+.hero h1 em { font-style:italic; color:var(--accent); }
+.hero-desc { font-size:16px; color:var(--ink-soft); max-width:560px; margin:0 auto 24px; line-height:1.7; }
+.hero-badges { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+.hero-badge {
+  font-family:var(--mono); font-size:11px; font-weight:700;
+  padding:6px 16px; border-radius:20px; border:1.5px solid var(--line);
+  color:var(--ink-soft); background:#fff;
+}
+
+/* SCORING CARD */
+.scoring-card {
+  background:linear-gradient(135deg,var(--accent-pale),#f0f7ff);
+  border:1px solid #bfdbfe; border-radius:var(--radius-lg);
+  padding:22px 28px; margin-bottom:52px;
+  display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+}
+.sc-icon  { font-size:38px; flex-shrink:0; }
+.sc-text h3 { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:6px; }
+.sc-text p  { font-size:13.5px; color:var(--slate); line-height:1.6; }
+.sc-marks { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+.sc-mark {
+  font-family:var(--mono); font-size:12px; font-weight:700;
+  padding:5px 14px; border-radius:20px; border:1.5px solid;
+}
+.sc-easy   { background:var(--green-pale); color:var(--green); border-color:var(--green); }
+.sc-medium { background:var(--accent-pale); color:var(--accent); border-color:var(--accent); }
+.sc-hard   { background:var(--rose-pale); color:var(--rose); border-color:var(--rose); }
+
+/* EVENT CARDS */
+.event-grid { display:flex; flex-direction:column; gap:18px; }
+.event-card {
+  background:#fff; border:1px solid var(--line);
+  border-radius:var(--radius-lg); overflow:hidden;
+  box-shadow:var(--shadow-md); transition:box-shadow .2s;
+}
+.event-card:hover { box-shadow:var(--shadow-lg); }
+.brand-codechamps  { border-top:5px solid #e67e22; }
+.brand-aptarena    { border-top:5px solid #059669; }
+.brand-sherlock    { border-top:5px solid #b45309; }
+.brand-queryquest  { border-top:5px solid #7c3aed; }
+.brand-mindmachine { border-top:5px solid #0891b2; }
+.brand-default     { border-top:5px solid var(--accent); }
+
+.ec-body  { padding:22px 26px; }
+.ec-top   { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; flex-wrap:wrap; margin-bottom:12px; }
+.ec-brand-chip {
+  font-family:var(--mono); font-size:10px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em;
+  padding:3px 10px; border-radius:10px; margin-bottom:6px; display:inline-block;
+}
+.ec-title { font-family:'DM Serif Display',serif; font-size:22px; line-height:1.2; margin-bottom:2px; }
+.ec-meta  { font-family:var(--mono); font-size:11px; color:var(--ink-soft); }
+.ec-chips { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start; }
+.chip {
+  font-family:var(--mono); font-size:10px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.04em; padding:4px 10px; border-radius:10px;
+}
+.chip-open   { background:var(--green-pale); color:var(--green); }
+.chip-full   { background:var(--rose-pale); color:var(--rose); }
+.chip-soon   { background:var(--amber-pale); color:var(--amber); }
+.chip-done   { background:#f0fdf4; color:#166534; }
+.chip-closed { background:var(--cream); color:var(--ink-soft); }
+
+.ec-desc { font-size:14px; color:var(--slate); margin-bottom:14px; line-height:1.6; }
+.ec-elig { font-size:12px; color:var(--amber); background:var(--amber-pale); display:inline-block; padding:3px 10px; border-radius:6px; margin-bottom:14px; }
+.ec-seats { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+.seats-bar { flex:1; max-width:180px; height:6px; background:var(--line); border-radius:4px; overflow:hidden; }
+.seats-fill { height:100%; border-radius:4px; }
+.seats-txt  { font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); }
+.ec-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.btn-reg {
+  padding:10px 22px; border-radius:8px; font-family:'DM Sans',sans-serif;
+  font-size:14px; font-weight:700; cursor:pointer; text-decoration:none;
+  display:inline-block; transition:all .15s;
+}
+.btn-reg.primary { background:var(--accent); color:#fff; border:none; }
+.btn-reg.primary:hover { background:var(--accent-deep); }
+.btn-reg.ghost { background:#fff; color:var(--accent); border:1.5px solid var(--accent); }
+.btn-reg.ghost:hover { background:var(--accent-pale); }
+.btn-reg.disabled { background:var(--cream); color:var(--ink-soft); border:1px solid var(--line); cursor:default; pointer-events:none; }
+
+/* PAST EVENTS */
+.past-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+@media(max-width:640px) { .past-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:400px) { .past-grid { grid-template-columns:1fr; } }
+.past-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow-sm); }
+.past-card .pc-title { font-weight:700; font-size:14.5px; margin-bottom:4px; }
+.past-card .pc-meta  { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin-bottom:6px; }
+.past-card .pc-label { font-family:var(--mono); font-size:11px; color:var(--green); }
+
+/* STANDINGS */
+.standings-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-md); }
+.standings-head {
+  background:linear-gradient(135deg,#1e1b4b,var(--accent-deep));
+  padding:20px 26px; display:flex; align-items:center; justify-content:space-between;
+}
+.standings-head h3 { font-family:'DM Serif Display',serif; font-size:20px; color:#fff; margin-bottom:2px; }
+.standings-head p  { font-family:var(--mono); font-size:10px; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.06em; }
+.live-dot { width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 2px rgba(74,222,128,.3); animation:pulse 1.8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.st-row {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 24px; border-bottom:1px solid var(--line); transition:background .12s;
+}
+.st-row:last-child { border-bottom:none; }
+.st-row:hover { background:var(--cream); }
+.st-rank { font-family:var(--mono); font-size:13px; font-weight:700; width:32px; text-align:center; flex-shrink:0; color:var(--ink-soft); }
+.st-rank.gold   { color:var(--gold); font-size:20px; }
+.st-rank.silver { color:#94a3b8; font-size:18px; }
+.st-rank.bronze { color:#b45309; font-size:17px; }
+.st-info { flex:1; }
+.st-name { font-weight:700; font-size:15px; }
+.st-meta { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin-top:1px; }
+.st-detail { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin-top:3px; }
+.st-score { text-align:right; flex-shrink:0; }
+.st-pts { font-family:'DM Serif Display',serif; font-size:24px; color:var(--accent); line-height:1.1; }
+.st-pct { font-family:var(--mono); font-size:11px; color:var(--ink-soft); }
+
+.spinner { width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:32px auto; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty-note { padding:36px; text-align:center; color:var(--ink-soft); font-size:14px; }
+
+/* FORMAT GRID */
+.format-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+@media(max-width:700px) { .format-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:440px) { .format-grid { grid-template-columns:1fr; } }
+.format-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px; box-shadow:var(--shadow-sm); transition:box-shadow .2s; }
+.format-card:hover { box-shadow:var(--shadow-md); }
+.fc-emoji { font-size:32px; margin-bottom:10px; }
+.fc-title { font-family:'DM Serif Display',serif; font-size:17px; margin-bottom:6px; }
+.fc-desc  { font-size:13px; color:var(--slate); line-height:1.55; margin-bottom:10px; }
+.fc-topics { display:flex; flex-wrap:wrap; gap:5px; }
+.fc-topic { font-family:var(--mono); font-size:10px; font-weight:600; padding:2px 8px; border-radius:8px; background:var(--cream); color:var(--ink-soft); border:1px solid var(--line); }
+.fc-top   { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:4px; }
+.fc-round { font-family:var(--mono); font-size:9.5px; font-weight:700; letter-spacing:.04em; padding:3px 9px; border-radius:9px; white-space:nowrap; }
+.fc-round.live { background:var(--green-pale); color:var(--green); }
+.fc-round.soon { background:var(--cream); color:var(--ink-soft); }
+
+/* GROWTH PASSPORT BANNER */
+.passport-card {
+  background:linear-gradient(135deg,var(--violet-pale),#f5f3ff);
+  border:1px solid #c4b5fd; border-radius:var(--radius-lg);
+  padding:24px 28px; margin-bottom:52px;
+  display:flex; gap:22px; align-items:center; flex-wrap:wrap;
+}
+.pp-icon { font-size:38px; flex-shrink:0; }
+.pp-text h3 { font-family:'DM Serif Display',serif; font-size:19px; margin-bottom:6px; color:var(--violet); }
+.pp-text p  { font-size:13.5px; color:var(--slate); line-height:1.65; }
+.pp-perks { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+.pp-perk {
+  font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--violet);
+  background:#fff; border:1.5px solid #c4b5fd; padding:5px 14px; border-radius:20px;
+}
+.pp-cta { margin-top:14px; font-size:14px; font-weight:600; color:var(--ink); }
+
+@media(max-width:580px) {
+  .hero h1 { font-size:30px; }
+  main { padding-top:92px; }
+  .nav-links .nav-link:not(.primary) { display:none; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">KP</div>
+    <div>
+      <div class="nav-name">K.P. Singh</div>
+      <div class="nav-sub">SGT University · Event League</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="student.html">📋 My Record</a>
+    <a class="nav-link" href="student_registration.html">📝 Register</a>
+    <a class="nav-link primary" href="https://kpsingh.in" target="_blank" rel="noopener">kpsingh.in ↗</a>
+  </div>
+</nav>
+
+<main>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">Student Growth Intelligence · SGIF · SGT University</div>
+    <h1>KP's <em>Event League</em></h1>
+    <p class="hero-desc">One league. Five formats. Every event you play builds your Growth Passport — a permanent record of how you think, not just what you scored. Same paper for everyone. Weighted marks. Results in real time.</p>
+    <div class="hero-badges">
+      <span class="hero-badge">⚔️ CodeChamps</span>
+      <span class="hero-badge">🧮 Aptitude Arena</span>
+      <span class="hero-badge">🕵️ Detective Sherlock</span>
+      <span class="hero-badge">🗄️ Query Quest</span>
+      <span class="hero-badge">🤖 Mind &amp; Machine</span>
+    </div>
+    <p style="margin-top:22px;font-family:'DM Serif Display',serif;font-style:italic;font-size:18px;color:var(--accent)">This is where the League begins — and where its first champions get made.</p>
+  </div>
+
+  <!-- SCORING -->
+  <div class="scoring-card">
+    <div class="sc-icon">⚖️</div>
+    <div class="sc-text">
+      <h3>Marks that reward difficulty — same paper for everyone</h3>
+      <p>Weighted marks mean solving harder questions earns more — exactly like placement tests. A student who gets 2 hard questions right outranks one who gets 4 easy ones. Announced upfront, no surprises.</p>
+      <div class="sc-marks">
+        <span class="sc-mark sc-easy">Easy = 1 mark</span>
+        <span class="sc-mark sc-medium">Medium = 2 marks</span>
+        <span class="sc-mark sc-hard">Hard = 3 marks</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROWTH PASSPORT — an advantage, not a format -->
+  <div class="passport-card">
+    <div class="pp-icon">🎓</div>
+    <div class="pp-text">
+      <h3>Your Growth Passport — the real prize</h3>
+      <p>Not a format, not another round to play — this is what you walk away with from all of them. Every event you play adds to one continuous, permanent record: your topic mastery map, your confidence calibration, your standing across the season. Play more formats, and it only gets richer.</p>
+      <div class="pp-perks">
+        <span class="pp-perk">🏅 Certificates for the top 3, every round</span>
+        <span class="pp-perk">🎯 Shoutout for the sharpest predictor</span>
+        <span class="pp-perk">📈 One passport, all season</span>
+      </div>
+      <div class="pp-cta"><a href="student.html" style="color:var(--violet)">See what your passport will look like →</a></div>
+    </div>
+  </div>
+
+  <!-- UPCOMING EVENTS -->
+  <div class="section-block">
+    <div class="section-head">
+      <h2>Upcoming &amp; Open Events</h2>
+      <p>Register before seats fill. The quiz link goes live on event day only.</p>
+    </div>
+    <div class="event-grid" id="upcoming-grid">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- SEASON STANDINGS -->
+  <div class="section-block">
+    <div class="section-head">
+      <h2>🏆 Season Standings</h2>
+      <p>Ranked by total weighted marks across all events this season. Participate in more formats to climb higher — breadth is rewarded, not just one big score.</p>
+    </div>
+    <div class="standings-card">
+      <div class="standings-head">
+        <div>
+          <h3>League Table — 2026 Season</h3>
+          <p>Total weighted marks · all event quizzes · live</p>
+        </div>
+        <div class="live-dot"></div>
+      </div>
+      <div id="standings-body"><div class="spinner"></div></div>
+    </div>
+  </div>
+
+  <!-- PAST EVENTS -->
+  <div class="section-block" id="past-block" style="display:none">
+    <div class="section-head">
+      <h2>Completed Events</h2>
+      <p>The record of every round that has been played.</p>
+    </div>
+    <div class="past-grid" id="past-grid"></div>
+  </div>
+
+  <!-- FORMAT SHOWCASE -->
+  <div class="section-block">
+    <div class="section-head">
+      <h2>The Season, Round by Round</h2>
+      <p>Round 1 opens broad — a bit of everything, so every branch and every year can walk in. From Round 2 onward, each round goes deep into one format. Play across all of them to build the fullest Growth Passport.</p>
+    </div>
+    <div class="format-grid">
+      <div class="format-card" style="border-top:3px solid #e67e22">
+        <div class="fc-top"><div class="fc-emoji">⚔️</div><span class="fc-round live">ROUND 1 · OPEN NOW</span></div>
+        <div class="fc-title">CodeChamps — League Opener</div>
+        <div class="fc-desc">The season's opening round — Aptitude, Programming (C/C++), and core CS concepts across DBMS, Data Structures, Algorithms, AI/ML, Data Science and Cloud Computing, all in one paper. Open to all Semester 7 branches.</div>
+        <div class="fc-topics"><span class="fc-topic">Aptitude</span><span class="fc-topic">C / C++</span><span class="fc-topic">DSA</span><span class="fc-topic">DBMS</span><span class="fc-topic">AI/ML</span></div>
+      </div>
+      <div class="format-card" style="border-top:3px solid #059669">
+        <div class="fc-top"><div class="fc-emoji">🧮</div><span class="fc-round soon">ROUND 2 · COMING SOON</span></div>
+        <div class="fc-title">Aptitude Arena</div>
+        <div class="fc-desc">Placement-pattern aptitude — quantitative, logical, verbal. TCS / Infosys style. Great for placement prep.</div>
+        <div class="fc-topics"><span class="fc-topic">Quant</span><span class="fc-topic">Logical</span><span class="fc-topic">Verbal</span></div>
+      </div>
+      <div class="format-card" style="border-top:3px solid #b45309">
+        <div class="fc-top"><div class="fc-emoji">🕵️</div><span class="fc-round soon">ROUND 3 · COMING SOON</span></div>
+        <div class="fc-title">Detective Sherlock</div>
+        <div class="fc-desc">Find the bug. Buggy code snippets in C, C++, Python, MATLAB — identify the exact root cause.</div>
+        <div class="fc-topics"><span class="fc-topic">C bugs</span><span class="fc-topic">Python</span><span class="fc-topic">MATLAB</span></div>
+      </div>
+      <div class="format-card" style="border-top:3px solid #7c3aed">
+        <div class="fc-top"><div class="fc-emoji">🗄️</div><span class="fc-round soon">ROUND 4 · COMING SOON</span></div>
+        <div class="fc-title">Query Quest</div>
+        <div class="fc-desc">Database showdown — SQL queries, normalization, ER diagrams, keys and indexing. Essential for DBMS semester.</div>
+        <div class="fc-topics"><span class="fc-topic">SQL</span><span class="fc-topic">Normalisation</span><span class="fc-topic">ER diagrams</span></div>
+      </div>
+      <div class="format-card" style="border-top:3px solid #0891b2">
+        <div class="fc-top"><div class="fc-emoji">🤖</div><span class="fc-round soon">ROUND 5 · COMING SOON</span></div>
+        <div class="fc-title">Mind &amp; Machine</div>
+        <div class="fc-desc">AI/ML and Data Science fundamentals — statistics, model concepts, Python for data. Best suited for Sem 5+.</div>
+        <div class="fc-topics"><span class="fc-topic">ML basics</span><span class="fc-topic">Stats</span><span class="fc-topic">Python-data</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ============================================================
+   SGIF EVENTS HUB — events.html
+   Reads: activities (public), league_standings (public)
+   No api_key needed for either endpoint.
+   ============================================================ */
+const API_URL       = 'https://script.google.com/macros/s/AKfycbzVS975A91DdDztHGIofJADerYEBDf2N9jPBjTyxO8Zr-0hH9Cv5e3-bevKdEdXny7k/exec';
+const LEAGUE_COHORT = 'SGT_LEAGUE_2026';   // update each academic year
+const STANDINGS_TOP = 15;
+
+/* brand config */
+const BRANDS = {
+  'CodeChamps':         { cls:'brand-codechamps',  color:'#e67e22', bg:'#fef3e2', fg:'#d35400' },
+  'Aptitude Arena':     { cls:'brand-aptarena',    color:'#059669', bg:'#ecfdf5', fg:'#065f46' },
+  'Detective Sherlock': { cls:'brand-sherlock',    color:'#b45309', bg:'#fef3c7', fg:'#92400e' },
+  'Query Quest':        { cls:'brand-queryquest',  color:'#7c3aed', bg:'#ede9fe', fg:'#5b21b6' },
+  'Mind & Machine':     { cls:'brand-mindmachine', color:'#0891b2', bg:'#ecfeff', fg:'#155e75' }
+};
+function brandOf(t) { return BRANDS[t] || { cls:'brand-default', color:'var(--accent)', bg:'var(--accent-pale)', fg:'var(--accent-deep)' }; }
+
+const TYPE_EMOJI = {
+  'CodeChamps':'⚔️','Aptitude Arena':'🧮',
+  'Detective Sherlock':'🕵️','Query Quest':'🗄️','Mind & Machine':'🤖'
+};
+function emojiOf(t) { return TYPE_EMOJI[t] || '🏆'; }
+
+async function apiGet(params) {
+  const qs  = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const url = API_URL + (API_URL.includes('?')?'&':'?') + qs;
+  const res = await fetch(url);
+  const j   = await res.json();
+  if (!j.success) throw new Error(j.message || 'Request failed');
+  return j.data;
+}
+
+async function init() {
+  await Promise.all([ loadEvents(), loadStandings() ]);
+}
+
+/* ── EVENTS ── */
+async function loadEvents() {
+  const grid = document.getElementById('upcoming-grid');
+  try {
+    const acts = await apiGet({ action:'activities' });
+    const upcoming = acts.filter(a => a.status === 'OPEN' || a.status === 'CLOSED');
+    const past     = acts.filter(a => a.status === 'DONE');
+
+    grid.innerHTML = upcoming.length
+      ? upcoming.map(eventCardHtml).join('')
+      : '<div class="empty-note">No events announced yet — check back soon. 🔔</div>';
+
+    if (past.length) {
+      document.getElementById('past-block').style.display = '';
+      document.getElementById('past-grid').innerHTML = past.map(pastCardHtml).join('');
+    }
+  } catch(e) {
+    grid.innerHTML = '<div class="empty-note">Could not load events — please refresh.</div>';
+  }
+}
+
+function eventCardHtml(a) {
+  const b   = brandOf(a.type);
+  const dt  = a.date ? new Date(a.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) : 'Date TBA';
+  const regEnd = a.regEnd ? new Date(a.regEnd).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+  const unlimited = (a.seatsLeft === null);
+  const pct = (unlimited || !a.capacity) ? 0 : Math.round(100*a.registered/a.capacity);
+  const seatsColor = pct>80?'var(--rose)':pct>50?'var(--amber)':'var(--green)';
+
+  let stateChip, primaryBtn;
+  if (a.regOpen) {
+    stateChip  = '<span class="chip chip-open">Registration Open</span>';
+    primaryBtn = `<a class="btn-reg primary" href="student_registration.html">Register now →</a>`;
+  } else if (!unlimited && a.seatsLeft === 0) {
+    stateChip  = '<span class="chip chip-full">Full</span>';
+    primaryBtn = `<span class="btn-reg disabled">Seats full</span>`;
+  } else {
+    stateChip  = '<span class="chip chip-soon">Coming soon</span>';
+    primaryBtn = `<span class="btn-reg disabled">Opens soon</span>`;
+  }
+
+  return `
+  <div class="event-card ${b.cls}">
+    <div class="ec-body">
+      <div class="ec-top">
+        <div>
+          <div class="ec-brand-chip" style="background:${b.bg};color:${b.fg}">${emojiOf(a.type)} ${esc(a.type)}</div>
+          <div class="ec-title">${esc(a.title)}</div>
+          <div class="ec-meta">${esc(a.id)} · ${dt}${a.venue?' · '+esc(a.venue):''}</div>
+        </div>
+        <div class="ec-chips">${stateChip}</div>
+      </div>
+      ${a.description?`<p class="ec-desc">${esc(a.description)}</p>`:''}
+      ${a.eligibility?`<div class="ec-elig">Eligibility: ${esc(a.eligibility)}</div>`:''}
+      <div class="ec-seats">
+        ${unlimited
+          ? '<span class="seats-txt">Open registration — no seat limit</span>'
+          : `<div class="seats-bar"><div class="seats-fill" style="width:${pct}%;background:${seatsColor}"></div></div>
+             <span class="seats-txt">${a.seatsLeft} of ${a.capacity} seats remaining</span>`}
+        ${regEnd?`<span class="seats-txt">· closes ${regEnd}</span>`:''}
+      </div>
+      <div class="ec-actions">
+        ${primaryBtn}
+        <a class="btn-reg ghost" href="student.html">📋 My record</a>
+      </div>
+    </div>
+  </div>`;
+}
+
+function pastCardHtml(a) {
+  const b  = brandOf(a.type);
+  const dt = a.date ? new Date(a.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : '';
+  return `
+  <div class="past-card" style="border-top:3px solid ${b.color}">
+    <div class="pc-title">${emojiOf(a.type)} ${esc(a.title)}</div>
+    <div class="pc-meta">${esc(a.id)}${dt?' · '+dt:''}</div>
+    <div class="pc-label">✓ Completed</div>
+  </div>`;
+}
+
+/* ── STANDINGS ── */
+async function loadStandings() {
+  const body = document.getElementById('standings-body');
+  try {
+    const data = await apiGet({ action:'league_standings', cohort:LEAGUE_COHORT, top:STANDINGS_TOP });
+    if (!data.length) {
+      body.innerHTML = '<div class="empty-note">No event attempts yet this season — be the first! 🚀</div>';
+      return;
+    }
+    const medals = ['🥇','🥈','🥉'];
+    body.innerHTML = data.map((s,i) => {
+      const rc = i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const rl = medals[i] || '#'+(i+1);
+      const diversity = s.formatsPlayed > 1
+        ? `${s.formatsPlayed} formats played`
+        : `${s.eventsPlayed} event${s.eventsPlayed!==1?'s':''}`;
+      return `
+      <div class="st-row">
+        <div class="st-rank ${rc}">${rl}</div>
+        <div class="st-info">
+          <div class="st-name">${esc(s.name)}</div>
+          <div class="st-meta">${esc(s.roll)}${s.section?' · Sec '+esc(s.section):''}</div>
+          <div class="st-detail">${s.eventsPlayed} event${s.eventsPlayed!==1?'s':''} · ${diversity} · Best grade ${esc(s.bestGrade)}</div>
+        </div>
+        <div class="st-score">
+          <div class="st-pts">${s.totalWeighted} <small style="font-size:13px;color:var(--ink-soft)">pts</small></div>
+          <div class="st-pct">${s.overallPct}% overall</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    body.innerHTML = '<div class="empty-note">Could not load standings — please refresh.</div>';
+  }
+}
+
+function esc(s) {
+  return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+init();
+</script>
+</body>
+</html>

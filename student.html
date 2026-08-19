@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Growth Passport — K.P. Singh · SGT University</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600;700&family=Inconsolata:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent:      #2563eb; --accent-pale:#dbeafe; --accent-deep:#1d4ed8;
+  --ink:         #1e293b; --ink-soft:#64748b; --slate:#475569;
+  --paper:       #f8fafc; --cream:#f1f5f9; --line:#e2e8f0;
+  --green:       #059669; --green-pale:#ecfdf5;
+  --rose:        #e11d48; --rose-pale:#ffe4e6;
+  --amber:       #b45309; --amber-pale:#fef3c7;
+  --violet:      #7c3aed; --violet-pale:#ede9fe;
+  --mono:        'Inconsolata', monospace;
+  --radius:      8px; --radius-lg:16px;
+  --shadow-sm:   0 1px 4px rgba(30,41,59,.07);
+  --shadow-md:   0 4px 16px rgba(30,41,59,.10);
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'DM Sans',sans-serif; font-size:15.5px;
+  line-height:1.65; color:var(--ink);
+  background:linear-gradient(150deg,var(--paper) 0%,#eef2f7 100%);
+  min-height:100vh;
+}
+
+/* NAV (shared pattern with the rest of the site) */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:rgba(248,250,252,.96); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line); padding:11px 26px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-brand { display:flex; align-items:center; gap:11px; }
+.nav-logo {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--accent); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'DM Serif Display',serif; font-size:16px; flex-shrink:0;
+}
+.nav-name { font-family:'DM Serif Display',serif; font-size:15.5px; line-height:1.2; }
+.nav-sub  { font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); }
+.nav-links { display:flex; gap:8px; align-items:center; }
+.nav-link {
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  padding:7px 14px; border-radius:20px; text-decoration:none;
+  border:1px solid var(--line); color:var(--ink-soft); transition:all .15s;
+}
+.nav-link:hover { border-color:var(--accent); color:var(--accent); }
+.nav-link.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+main { position:relative; z-index:1; max-width:880px; margin:0 auto; padding:100px 22px 80px; }
+
+.page-head { margin-bottom:26px; text-align:center; }
+.eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
+h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:32px; line-height:1.15; margin-bottom:8px; }
+h1 em { font-style:italic; color:var(--accent); }
+.lede { color:var(--ink-soft); font-size:14.5px; max-width:520px; margin:0 auto; }
+
+/* LOOKUP */
+.lookup-card {
+  display:flex; gap:10px; align-items:center; background:#fff;
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:16px 20px; margin:28px 0; flex-wrap:wrap;
+  box-shadow:var(--shadow-sm);
+}
+.lookup-card label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap; letter-spacing:.05em; }
+.lookup-card input {
+  flex:1; min-width:200px; padding:10px 13px; border:1px solid var(--line);
+  border-radius:6px; font-family:var(--mono); font-size:14px; text-transform:uppercase;
+}
+.lookup-card input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-pale); }
+.btn { padding:10px 20px; border:1px solid var(--accent); border-radius:6px; background:var(--accent); color:#fff; font-family:'DM Sans',sans-serif; font-size:13.5px; font-weight:600; cursor:pointer; }
+.btn:hover { background:var(--accent-deep); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+
+.spinner { width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:40px auto; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty { padding:48px; text-align:center; color:var(--ink-soft); background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); }
+.msg { display:none; padding:12px 15px; border-radius:7px; font-size:13.5px; margin-top:10px; }
+.msg.show { display:block; }
+.msg.err { background:var(--rose-pale); color:var(--rose); border-left:3px solid var(--rose); }
+
+#result { display:none; }
+#result.show { display:block; }
+
+/* PASSPORT HEADER */
+.passport-head {
+  background:linear-gradient(135deg,#1e1b4b,var(--accent-deep));
+  border-radius:var(--radius-lg); padding:26px 30px; margin-bottom:22px;
+  color:#fff; box-shadow:var(--shadow-md);
+  display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.ph-name { font-family:'DM Serif Display',serif; font-size:24px; margin-bottom:4px; }
+.ph-meta { font-family:var(--mono); font-size:11.5px; color:rgba(255,255,255,.75); }
+.ph-badge {
+  font-family:var(--mono); font-size:10.5px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em; background:rgba(255,255,255,.14); padding:6px 14px; border-radius:16px;
+}
+
+/* METRIC CARDS */
+.metrics { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:22px; }
+@media(max-width:640px) { .metrics { grid-template-columns:1fr 1fr; } }
+.metric-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); padding:16px 18px; box-shadow:var(--shadow-sm); text-align:center; }
+.metric-val { font-family:'DM Serif Display',serif; font-size:26px; color:var(--accent); line-height:1.1; }
+.metric-lbl { font-family:var(--mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; margin-top:4px; letter-spacing:.03em; }
+
+/* SECTION CARD */
+.section-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); padding:22px 26px; margin-bottom:22px; box-shadow:var(--shadow-sm); }
+.section-card h3 { font-family:'DM Serif Display',serif; font-size:18px; margin-bottom:14px; }
+.section-card .hint { font-size:12.5px; color:var(--ink-soft); margin-top:-8px; margin-bottom:16px; }
+
+/* TOPIC BARS */
+.topic-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.topic-row:last-child { margin-bottom:0; }
+.topic-name { width:150px; flex-shrink:0; font-size:13px; font-weight:600; }
+.topic-bar-track { flex:1; height:8px; background:var(--cream); border-radius:4px; overflow:hidden; }
+.topic-bar-fill { height:100%; border-radius:4px; }
+.topic-pct { width:44px; flex-shrink:0; text-align:right; font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
+
+/* CALIBRATION */
+.calib-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+@media(max-width:560px) { .calib-grid { grid-template-columns:1fr; } }
+.calib-item { background:var(--cream); border-radius:10px; padding:14px 16px; }
+.calib-num { font-family:'DM Serif Display',serif; font-size:22px; }
+.calib-lbl { font-size:12px; color:var(--ink-soft); margin-top:2px; }
+
+/* TIMELINE / ATTEMPTS */
+.tl-row { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--line); }
+.tl-row:last-child { border-bottom:none; }
+.tl-dot { width:10px; height:10px; border-radius:50%; background:var(--accent); flex-shrink:0; }
+.tl-info { flex:1; }
+.tl-quiz { font-weight:700; font-size:14px; }
+.tl-date { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); }
+.tl-score { text-align:right; flex-shrink:0; }
+.tl-pct { font-family:'DM Serif Display',serif; font-size:19px; color:var(--accent); }
+.tl-grade { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); }
+
+/* SPARKLINE */
+.spark-wrap { margin-bottom:18px; }
+
+/* ALA CARD */
+.ala-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+@media(max-width:560px) { .ala-grid { grid-template-columns:1fr 1fr; } }
+.ala-item { text-align:center; background:var(--violet-pale); border-radius:10px; padding:12px 8px; }
+.ala-val { font-family:'DM Serif Display',serif; font-size:20px; color:var(--violet); }
+.ala-lbl { font-family:var(--mono); font-size:9.5px; color:var(--slate); margin-top:3px; text-transform:uppercase; }
+
+/* REGISTRATIONS */
+.reg-row { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px; flex-wrap:wrap; }
+.reg-row:last-child { border-bottom:none; }
+.pill { padding:3px 10px; border-radius:11px; font-size:11px; font-weight:600; }
+.pill.reg { background:var(--green-pale); color:var(--green); }
+.pill.can { background:var(--cream); color:var(--ink-soft); }
+
+@media(max-width:580px) { main { padding-top:92px; } h1 { font-size:26px; } .nav-links .nav-link:not(.primary) { display:none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">KP</div>
+    <div>
+      <div class="nav-name">K.P. Singh</div>
+      <div class="nav-sub">SGT University · Event League</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="events.html">🏆 All Events</a>
+    <a class="nav-link" href="student_registration.html">📝 Register</a>
+    <a class="nav-link primary" href="https://kpsingh.in" target="_blank" rel="noopener">kpsingh.in ↗</a>
+  </div>
+</nav>
+
+<main>
+
+  <div class="page-head">
+    <div class="eyebrow">Student Growth Intelligence · SGIF</div>
+    <h1>My Growth <em>Passport</em></h1>
+    <p class="lede">One continuous record of every event you've played — your topic mastery, how well-calibrated your confidence is, and how you've grown attempt over attempt.</p>
+  </div>
+
+  <div class="lookup-card">
+    <label for="roll-input">Roll number</label>
+    <input id="roll-input" placeholder="ENTER YOUR ROLL NUMBER" onkeydown="if(event.key==='Enter') lookup()">
+    <button class="btn" id="lookup-btn" onclick="lookup()">View my passport →</button>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <div id="spinner-wrap"></div>
+
+  <div id="result">
+    <div class="passport-head">
+      <div>
+        <div class="ph-name" id="ph-name">—</div>
+        <div class="ph-meta" id="ph-meta">—</div>
+      </div>
+      <div class="ph-badge" id="ph-badge">— events played</div>
+    </div>
+
+    <div class="metrics" id="metrics"></div>
+
+    <div class="section-card" id="trend-card" style="display:none">
+      <h3>Growth over time</h3>
+      <p class="hint">Percentage scored on each attempt, in order — the shape that matters more than any single number.</p>
+      <div class="spark-wrap" id="spark-wrap"></div>
+    </div>
+
+    <div class="section-card" id="topics-card" style="display:none">
+      <h3>Topic mastery</h3>
+      <p class="hint">Weakest topics first — this is what to revise before the next round.</p>
+      <div id="topics-body"></div>
+    </div>
+
+    <div class="section-card" id="calib-card" style="display:none">
+      <h3>Confidence calibration</h3>
+      <p class="hint">How well your confidence matches reality across every rated answer.</p>
+      <div class="calib-grid" id="calib-body"></div>
+    </div>
+
+    <div class="section-card" id="ala-card" style="display:none">
+      <h3>Baseline assessment (ALA)</h3>
+      <p class="hint">Your one-time, non-evaluative baseline — for context, not comparison.</p>
+      <div class="ala-grid" id="ala-body"></div>
+    </div>
+
+    <div class="section-card" id="attempts-card" style="display:none">
+      <h3>Event history</h3>
+      <div id="attempts-body"></div>
+    </div>
+
+    <div class="section-card" id="regs-card" style="display:none">
+      <h3>My registrations</h3>
+      <div id="regs-body"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ============================================================
+   SGIF MY GROWTH PASSPORT — student.html
+   Reads: student_lookup, ala_lookup, my_registrations (all public,
+   roll-number-scoped — no api_key needed).
+   ============================================================ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzVS975A91DdDztHGIofJADerYEBDf2N9jPBjTyxO8Zr-0hH9Cv5e3-bevKdEdXny7k/exec';
+
+async function apiGet(params) {
+  const qs  = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const url = API_URL + (API_URL.includes('?')?'&':'?') + qs;
+  const res = await fetch(url);
+  const j   = await res.json();
+  return j; // caller checks j.success — some lookups are expected to fail (no ALA yet, etc.)
+}
+
+function esc(s) {
+  return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function pctColor(pct) {
+  return pct>=75 ? 'var(--green)' : pct>=50 ? 'var(--amber)' : 'var(--rose)';
+}
+
+async function lookup() {
+  const roll = document.getElementById('roll-input').value.trim().toUpperCase();
+  const msg  = document.getElementById('msg');
+  const btn  = document.getElementById('lookup-btn');
+  const result = document.getElementById('result');
+  msg.className = 'msg'; result.classList.remove('show');
+
+  if (!roll) {
+    msg.textContent = 'Enter your roll number first.';
+    msg.classList.add('show','err');
+    return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Loading…';
+  document.getElementById('spinner-wrap').innerHTML = '<div class="spinner"></div>';
+
+  const [profileRes, alaRes, regsRes] = await Promise.all([
+    apiGet({ action:'student_lookup', roll }),
+    apiGet({ action:'ala_lookup', roll }),
+    apiGet({ action:'my_registrations', roll })
+  ]);
+
+  document.getElementById('spinner-wrap').innerHTML = '';
+  btn.disabled = false; btn.textContent = 'View my passport →';
+
+  if (!profileRes.success) {
+    msg.textContent = profileRes.message || 'No record found for this roll number yet — play your first event to start your passport.';
+    msg.classList.add('show','err');
+    return;
+  }
+
+  renderProfile(profileRes.data);
+  renderAla(alaRes.success ? alaRes.data : null);
+  renderRegs(regsRes.success ? regsRes.data : []);
+  result.classList.add('show');
+}
+
+function renderProfile(p) {
+  document.getElementById('ph-name').textContent = p.name || p.roll;
+  document.getElementById('ph-meta').textContent =
+    [p.roll, p.branch, p.section ? 'Sec '+p.section : '', p.semester ? 'Sem '+p.semester : ''].filter(Boolean).join(' · ');
+  document.getElementById('ph-badge').textContent = p.quizzesTaken + ' event' + (p.quizzesTaken!==1?'s':'') + ' played';
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-val">${p.attemptsCount}</div><div class="metric-lbl">Attempts</div></div>
+    <div class="metric-card"><div class="metric-val">${p.avgPct}%</div><div class="metric-lbl">Average score</div></div>
+    <div class="metric-card"><div class="metric-val">${p.bestPct}%</div><div class="metric-lbl">Best score</div></div>
+    <div class="metric-card"><div class="metric-val">${esc(p.bestGrade)}</div><div class="metric-lbl">Best grade</div></div>`;
+
+  if (p.attempts && p.attempts.length) {
+    document.getElementById('trend-card').style.display = '';
+    document.getElementById('spark-wrap').innerHTML = sparklineSvg(p.attempts.map(a => a.pct));
+
+    document.getElementById('attempts-card').style.display = '';
+    document.getElementById('attempts-body').innerHTML = p.attempts.slice().reverse().map(a => `
+      <div class="tl-row">
+        <div class="tl-dot" style="background:${pctColor(a.pct)}"></div>
+        <div class="tl-info">
+          <div class="tl-quiz">${esc(a.quiz)}</div>
+          <div class="tl-date">${a.date ? new Date(a.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : ''}${a.mode?' · '+esc(a.mode):''}</div>
+        </div>
+        <div class="tl-score">
+          <div class="tl-pct">${a.pct}%</div>
+          <div class="tl-grade">Grade ${esc(a.grade)}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  if (p.topics && p.topics.length) {
+    document.getElementById('topics-card').style.display = '';
+    document.getElementById('topics-body').innerHTML = p.topics.map(t => `
+      <div class="topic-row">
+        <div class="topic-name">${esc(t.tag)}</div>
+        <div class="topic-bar-track"><div class="topic-bar-fill" style="width:${t.pct}%;background:${pctColor(t.pct)}"></div></div>
+        <div class="topic-pct">${t.pct}%</div>
+      </div>`).join('');
+  }
+
+  if (p.calibration && p.calibration.itemsRated > 0) {
+    document.getElementById('calib-card').style.display = '';
+    const c = p.calibration;
+    document.getElementById('calib-body').innerHTML = `
+      <div class="calib-item"><div class="calib-num">${c.avgConfidencePct}%</div><div class="calib-lbl">Average confidence</div></div>
+      <div class="calib-item"><div class="calib-num" style="color:var(--rose)">${c.overconfidentItems}</div><div class="calib-lbl">Sure — but wrong</div></div>
+      <div class="calib-item"><div class="calib-num" style="color:var(--green)">${c.underconfidentItems}</div><div class="calib-lbl">Unsure — but right</div></div>`;
+  }
+}
+
+function renderAla(a) {
+  if (!a) return;
+  document.getElementById('ala-card').style.display = '';
+  const items = [
+    ['GM',  a.gm_score,  'Growth mindset'],
+    ['ASE', a.ase_score, 'Self-efficacy'],
+    ['HSO', a.hso_score, 'Help-seeking'],
+    ['LO',  a.lo_score,  'Learning orient.'],
+    ['CC',  a.cc_score,  'Content check']
+  ];
+  document.getElementById('ala-body').innerHTML = items.map(([code,val,lbl]) => `
+    <div class="ala-item">
+      <div class="ala-val">${val==null||val===''?'—':val}</div>
+      <div class="ala-lbl">${code}</div>
+    </div>`).join('') +
+    `<div class="hint" style="grid-column:1/-1;margin-top:8px;margin-bottom:0">Taken ${a.lastAlaDate?new Date(a.lastAlaDate).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'—'} · one-time baseline, not used to rank or shortlist you for any event.</div>`;
+}
+
+function renderRegs(regs) {
+  if (!regs || !regs.length) return;
+  document.getElementById('regs-card').style.display = '';
+  document.getElementById('regs-body').innerHTML = regs.map(r => {
+    const dt = r.date ? new Date(r.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '';
+    const active = r.status === 'Registered';
+    return `<div class="reg-row">
+      <div><b>${esc(r.title)}</b>${dt?' · '+dt:''}${r.venue?' · '+esc(r.venue):''}</div>
+      <span class="pill ${active?'reg':'can'}">${esc(r.status)}</span>
+    </div>`;
+  }).join('');
+}
+
+/* tiny dependency-free sparkline */
+function sparklineSvg(vals) {
+  if (!vals.length) return '';
+  const w = 760, h = 90, pad = 10;
+  const max = 100, min = 0;
+  const stepX = vals.length > 1 ? (w - pad*2) / (vals.length - 1) : 0;
+  const pts = vals.map((v,i) => {
+    const x = pad + i*stepX;
+    const y = h - pad - ((v-min)/(max-min)) * (h - pad*2);
+    return [x,y];
+  });
+  const path = pts.map((p,i) => (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const dots = pts.map((p,i) => `<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4" fill="${pctColor(vals[i])}" />`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:${h}px" preserveAspectRatio="none">
+    <path d="${path}" fill="none" stroke="#2563eb" stroke-width="2.5" />
+    ${dots}
+  </svg>`;
+}
+</script>
+</body>
+</html>

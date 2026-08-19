@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Registration — K.P. Singh · SGT University</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600;700&family=Inconsolata:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent:      #2563eb; --accent-pale:#dbeafe; --accent-deep:#1d4ed8;
+  --ink:         #1e293b; --ink-soft:#64748b; --slate:#475569;
+  --paper:       #f8fafc; --cream:#f1f5f9; --line:#e2e8f0;
+  --green:       #059669; --green-pale:#ecfdf5;
+  --rose:        #e11d48; --rose-pale:#ffe4e6;
+  --amber:       #b45309; --amber-pale:#fef3c7;
+  --mono:        'Inconsolata', monospace;
+  --radius:      8px; --radius-lg:12px;
+  --shadow-sm:   0 1px 3px rgba(30,41,59,.07);
+  --shadow-md:   0 4px 12px rgba(30,41,59,.08);
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'DM Sans',sans-serif; font-size:15.5px;
+  line-height:1.65; color:var(--ink);
+  background:linear-gradient(150deg,var(--paper) 0%,#eef2f7 100%);
+  min-height:100vh;
+}
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.018'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+body::after {
+  content:''; position:fixed; top:0; right:0; z-index:0; pointer-events:none;
+  width:300px; height:300px;
+  background:repeating-linear-gradient(45deg,var(--accent),var(--accent) 1px,transparent 1px,transparent 20px);
+  opacity:.03;
+}
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:rgba(248,250,252,.95); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line); padding:11px 26px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-brand { display:flex; align-items:center; gap:11px; }
+.nav-logo {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--accent); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'DM Serif Display',serif; font-size:16px; flex-shrink:0;
+}
+.nav-name { font-family:'DM Serif Display',serif; font-size:15.5px; line-height:1.2; }
+.nav-sub  { font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); }
+.nav-links { display:flex; gap:8px; align-items:center; }
+.nav-link {
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  padding:7px 14px; border-radius:20px; text-decoration:none;
+  border:1px solid var(--line); color:var(--ink-soft); transition:all .15s;
+}
+.nav-link:hover { border-color:var(--accent); color:var(--accent); }
+.nav-link.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+.nav-link.primary:hover { background:var(--accent-deep); }
+
+/* MAIN */
+main { position:relative; z-index:1; max-width:880px; margin:0 auto; padding:100px 22px 80px; }
+
+/* PAGE HEAD */
+.page-head { margin-bottom:28px; }
+.eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:5px; }
+h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:34px; line-height:1.15; margin-bottom:8px; }
+h1 em { font-style:italic; color:var(--accent); }
+.lede { color:var(--ink-soft); font-size:14.5px; max-width:540px; }
+
+/* MY REGISTRATIONS BAR */
+.myreg-bar {
+  display:flex; gap:10px; align-items:center; background:#fff;
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:14px 18px; margin-bottom:28px; flex-wrap:wrap;
+  box-shadow:var(--shadow-sm);
+}
+.myreg-bar label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap; letter-spacing:.05em; }
+.myreg-bar input {
+  flex:1; min-width:190px; padding:9px 12px; border:1px solid var(--line);
+  border-radius:6px; font-family:var(--mono); font-size:13px; text-transform:uppercase;
+  transition:border-color .15s, box-shadow .15s;
+}
+.myreg-bar input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-pale); }
+.btn { padding:9px 18px; border:1px solid var(--accent); border-radius:6px; background:var(--accent); color:#fff; font-family:'DM Sans',sans-serif; font-size:13.5px; font-weight:600; cursor:pointer; transition:background .15s, transform .1s; }
+.btn:hover   { background:var(--accent-deep); }
+.btn:active  { transform:scale(.98); }
+.btn.ghost   { background:#fff; color:var(--accent); }
+.btn.ghost:hover { background:var(--accent-pale); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+
+/* MY REGS PANEL */
+.myregs { display:none; background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:28px; box-shadow:var(--shadow-sm); }
+.myregs.show { display:block; }
+.myregs h3   { font-family:'DM Serif Display',serif; font-size:18px; margin:0 0 14px; }
+.mr-row { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:10px 0; border-bottom:1px solid var(--line); font-size:13.5px; flex-wrap:wrap; }
+.mr-row:last-child { border-bottom:none; }
+.mr-rid { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); margin-top:2px; }
+.pill { padding:3px 10px; border-radius:11px; font-size:11px; font-weight:600; }
+.pill.reg { background:var(--green-pale); color:var(--green); }
+.pill.can { background:var(--cream); color:var(--ink-soft); }
+.link-danger { background:none; border:none; color:var(--rose); font-size:12.5px; font-weight:600; cursor:pointer; text-decoration:underline; }
+
+/* EVENT CARDS */
+.cards { display:flex; flex-direction:column; gap:20px; }
+.card {
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg);
+  border-top:4px solid var(--accent); box-shadow:var(--shadow-md); overflow:hidden;
+  transition:box-shadow .2s; scroll-margin-top:100px;  /* for hash-scroll */
+}
+.card:hover { box-shadow:0 8px 24px rgba(30,41,59,.11); }
+.card[data-type="CodeChamps"]         { border-top-color:#e67e22; }
+.card[data-type="Aptitude Arena"]     { border-top-color:#059669; }
+.card[data-type="Detective Sherlock"] { border-top-color:#b45309; }
+.card[data-type="Query Quest"]        { border-top-color:#7c3aed; }
+.card[data-type="Mind & Machine"]     { border-top-color:#0891b2; }
+
+/* highlight on hash-target */
+.card.highlighted { box-shadow:0 0 0 3px var(--accent), 0 8px 24px rgba(30,41,59,.11); }
+
+.card-body { padding:22px 26px; }
+.card-top  { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; flex-wrap:wrap; }
+.a-title   { font-family:'DM Serif Display',serif; font-size:22px; margin:0 0 3px; line-height:1.2; }
+.a-meta    { font-family:var(--mono); font-size:11px; color:var(--ink-soft); }
+.chips { display:flex; gap:8px; flex-wrap:wrap; margin-top:2px; }
+.chip { font-family:var(--mono); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; padding:4px 10px; border-radius:12px; }
+.chip.type   { background:var(--accent-pale); color:var(--accent); }
+.chip.open   { background:var(--green-pale);  color:var(--green); }
+.chip.full   { background:var(--rose-pale);   color:var(--rose); }
+.chip.closed { background:var(--cream);       color:var(--ink-soft); }
+.chip.done   { background:#f0fdf4;            color:#166534; }
+
+.a-desc { font-size:14px; color:var(--slate); margin:14px 0 12px; line-height:1.6; }
+.a-elig { font-size:12px; color:var(--amber); background:var(--amber-pale); display:inline-block; padding:4px 10px; border-radius:6px; margin-bottom:14px; }
+.seats  { display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+.seats-bar { flex:1; max-width:200px; height:6px; background:var(--line); border-radius:4px; overflow:hidden; }
+.seats-fill { height:100%; border-radius:4px; transition:width .4s ease; }
+.seats-txt  { font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); }
+
+/* REG FORM */
+.reg-form { display:none; border-top:1px dashed var(--line); padding-top:18px; margin-top:6px; }
+.reg-form.show { display:block; }
+.rf-label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin-bottom:10px; }
+.rf-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:14px; }
+@media(max-width:700px) { .rf-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:440px) { .rf-grid { grid-template-columns:1fr; } }
+
+.rf-grid input,
+.rf-grid select {
+  padding:10px 13px; border:1px solid var(--line); border-radius:6px;
+  font-family:'DM Sans',sans-serif; font-size:14px; width:100%; background:#fff;
+  transition:border-color .15s, box-shadow .15s;
+  appearance:none; -webkit-appearance:none;
+}
+.rf-grid select {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 12px center; padding-right:32px;
+}
+.rf-grid input:focus,
+.rf-grid select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-pale); }
+.rf-grid input::placeholder { color:var(--ink-soft); }
+
+.msg { display:none; padding:12px 15px; border-radius:7px; font-size:13.5px; margin-top:12px; }
+.msg.show { display:block; }
+.msg.ok  { background:var(--green-pale); color:var(--green); border-left:3px solid var(--green); }
+.msg.err { background:var(--rose-pale);  color:var(--rose);  border-left:3px solid var(--rose); }
+.msg .rid { font-family:var(--mono); font-weight:700; word-break:break-all; }
+
+/* LOADING / EMPTY */
+.spinner { width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:40px auto; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty { padding:48px; text-align:center; color:var(--ink-soft); background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); }
+
+@media(max-width:600px) { main { padding-top:92px; } h1 { font-size:26px; } .nav-links .nav-link:not(.primary) { display:none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">KP</div>
+    <div>
+      <div class="nav-name">K.P. Singh</div>
+      <div class="nav-sub">SGT University · Event Registration</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="events.html">🏆 All Events</a>
+    <a class="nav-link" href="student.html">📋 My Record</a>
+    <a class="nav-link primary" href="https://kpsingh.in" target="_blank" rel="noopener">kpsingh.in ↗</a>
+  </div>
+</nav>
+
+<main>
+
+  <div class="page-head">
+    <div class="eyebrow">Student Growth Intelligence · SGIF</div>
+    <h1>Event <em>Registration</em></h1>
+    <p class="lede">Register for upcoming events below. Every event counts towards your Growth Passport. Use the lookup bar to check or cancel your existing registrations.</p>
+  </div>
+
+  <!-- MY REGISTRATIONS LOOKUP -->
+  <div class="myreg-bar">
+    <label for="mr-roll">Check my registrations</label>
+    <input id="mr-roll" placeholder="ENTER ROLL NUMBER" onkeydown="if(event.key==='Enter') loadMyRegs()">
+    <button class="btn ghost" onclick="loadMyRegs()">Check →</button>
+  </div>
+  <div class="myregs" id="myregs"></div>
+
+  <!-- EVENT CARDS -->
+  <div class="cards" id="cards">
+    <div class="spinner"></div>
+  </div>
+
+</main>
+
+<script>
+/* ============================================================
+   SGIF EVENT REGISTRATION PAGE — student_registration.html
+   
+   Navigation context:
+   - Reached from events.html "Register for this event →" link
+     (URL hash = Activity_ID, e.g. #CODECHAMPS-01)
+   - Also reachable directly from nav on any SGIF page
+   
+   Hash behaviour: if URL contains a hash matching an Activity_ID,
+   that card scrolls into view and its form opens automatically.
+   ============================================================ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzVS975A91DdDztHGIofJADerYEBDf2N9jPBjTyxO8Zr-0hH9Cv5e3-bevKdEdXny7k/exec';
+
+async function apiGet(params) {
+  const qs  = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const url = API_URL + (API_URL.includes('?')?'&':'?') + qs;
+  const res = await fetch(url);
+  const j   = await res.json();
+  if (!j.success) throw new Error(j.message || 'Request failed');
+  return j.data;
+}
+
+/* ── load & render activities ── */
+async function loadActivities() {
+  const wrap = document.getElementById('cards');
+  try {
+    const acts = await apiGet({ action:'activities' });
+    if (!acts.length) {
+      wrap.innerHTML = '<div class="empty">No events announced yet — check back soon.</div>';
+      return;
+    }
+    wrap.innerHTML = acts.map(cardHtml).join('');
+    handleHash();   // auto-open if arrived via hash link from events.html
+  } catch(e) {
+    wrap.innerHTML = '<div class="empty">Could not load events. Please refresh.</div>';
+  }
+}
+
+/* ── handle hash-based auto-scroll & open ── */
+function handleHash() {
+  const hash = window.location.hash.replace('#','').trim();
+  if (!hash) return;
+  const card = document.getElementById('card-' + hash);
+  if (!card) return;
+
+  /* highlight */
+  card.classList.add('highlighted');
+  setTimeout(() => card.classList.remove('highlighted'), 3000);
+
+  /* scroll into view */
+  setTimeout(() => card.scrollIntoView({ behavior:'smooth', block:'center' }), 200);
+
+  /* open form if registration is open */
+  const form = document.getElementById('form-' + hash);
+  if (form) {
+    form.classList.add('show');
+    /* focus first empty input */
+    setTimeout(() => {
+      const first = form.querySelector('input:not([readonly])');
+      if (first) first.focus();
+    }, 600);
+  }
+}
+
+function cardHtml(a) {
+  const dt = a.date
+    ? new Date(a.date).toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'})
+    : 'Date TBA';
+  const regEnd = a.regEnd
+    ? new Date(a.regEnd).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+    : '';
+  const unlimited = (a.seatsLeft === null);
+  const pct = (unlimited || !a.capacity) ? 0 : Math.round(100*a.registered/a.capacity);
+  const seatsColor = pct>80?'var(--rose)':pct>50?'var(--amber)':'var(--green)';
+
+  const typeEmoji = {'CodeChamps':'⚔️','Aptitude Arena':'🧮','Detective Sherlock':'🕵️','Query Quest':'🗄️','Mind & Machine':'🤖'}[a.type]||'🏆';
+
+  let stateChip;
+  if (a.regOpen)                          stateChip = '<span class="chip open">Registration open</span>';
+  else if (!unlimited && a.seatsLeft===0) stateChip = '<span class="chip full">Full</span>';
+  else if (a.status==='DONE')             stateChip = '<span class="chip done">Completed</span>';
+  else                                     stateChip = '<span class="chip closed">Registration closed</span>';
+
+  return `
+  <div class="card" id="card-${esc(a.id)}" data-type="${esc(a.type)}">
+    <div class="card-body">
+      <div class="card-top">
+        <div>
+          <div class="a-title">${typeEmoji} ${esc(a.title)}</div>
+          <div class="a-meta">${esc(a.id)} · ${dt}${a.venue?' · '+esc(a.venue):''}</div>
+        </div>
+        <div class="chips">
+          ${a.type?`<span class="chip type">${esc(a.type)}</span>`:''}
+          ${stateChip}
+        </div>
+      </div>
+      ${a.description?`<p class="a-desc">${esc(a.description)}</p>`:''}
+      ${a.eligibility?`<div class="a-elig">Eligibility: ${esc(a.eligibility)}</div>`:''}
+      <div class="seats">
+        ${unlimited
+          ? '<span class="seats-txt">Open registration — no seat limit</span>'
+          : `<div class="seats-bar"><div class="seats-fill" style="width:${pct}%;background:${seatsColor}"></div></div>
+             <span class="seats-txt">${a.seatsLeft} of ${a.capacity} seats remaining</span>`}
+        ${regEnd?`<span class="seats-txt">· closes ${regEnd}</span>`:''}
+      </div>
+
+      ${a.regOpen ? `
+        <button class="btn" onclick="toggleForm('${esc(a.id)}')">Register for this event →</button>
+        <div class="reg-form" id="form-${esc(a.id)}">
+          <div class="rf-label">Your details — fill once per event</div>
+          <div class="rf-grid">
+            <input id="f-name-${esc(a.id)}"   placeholder="Full name *" autocomplete="name">
+            <input id="f-roll-${esc(a.id)}"   placeholder="Roll number *" style="text-transform:uppercase" autocomplete="off">
+            <input id="f-email-${esc(a.id)}"  placeholder="Email ID *" type="email" autocomplete="email">
+            <input id="f-phone-${esc(a.id)}"  placeholder="Phone number *" type="tel" maxlength="10">
+            <select id="f-course-${esc(a.id)}">
+              <option value="">Course *</option>
+              <option>BTech</option><option>BCA</option>
+              <option>MTech</option><option>MCA</option>
+              <option>BSc</option><option>MSc</option>
+              <option>MBA</option><option>Other</option>
+            </select>
+            <input id="f-branch-${esc(a.id)}" placeholder="Branch * (e.g. CSE, IT, AI&DS)">
+            <select id="f-sem-${esc(a.id)}">
+              <option value="">Semester *</option>
+              <option>1st</option><option>2nd</option><option>3rd</option>
+              <option>4th</option><option>5th</option><option>6th</option>
+              <option>7th</option><option>8th</option>
+            </select>
+            <input id="f-spec-${esc(a.id)}"    placeholder="Specialisation (optional)">
+            <input id="f-section-${esc(a.id)}" placeholder="Section (optional, e.g. E1)">
+          </div>
+          <button class="btn" id="btn-${esc(a.id)}" onclick="register('${esc(a.id)}')">
+            Confirm Registration ✓
+          </button>
+          <div class="msg" id="msg-${esc(a.id)}"></div>
+        </div>
+      ` : `<div style="color:var(--ink-soft);font-size:13.5px;padding:4px 0">Registration is not currently open for this event.</div>`}
+    </div>
+  </div>`;
+}
+
+function toggleForm(id) {
+  const form = document.getElementById('form-' + id);
+  form.classList.toggle('show');
+  if (form.classList.contains('show')) {
+    const first = form.querySelector('input:not([readonly])');
+    if (first) setTimeout(() => first.focus(), 100);
+  }
+}
+
+/* ── register ── */
+async function register(id) {
+  const g     = field => document.getElementById('f-'+field+'-'+id).value.trim();
+  const name  = g('name');
+  const roll  = g('roll').toUpperCase();
+  const email = g('email');
+  const phone = g('phone');
+  const course= g('course');
+  const branch= g('branch');
+  const sem   = g('sem');
+  const msg   = document.getElementById('msg-'+id);
+  const btn   = document.getElementById('btn-'+id);
+  msg.className = 'msg';
+
+  const missing = [];
+  if (!name)   missing.push('Full name');
+  if (!roll)   missing.push('Roll number');
+  if (!email)  missing.push('Email ID');
+  if (!phone)  missing.push('Phone number');
+  if (!course) missing.push('Course');
+  if (!branch) missing.push('Branch');
+  if (!sem)    missing.push('Semester');
+
+  if (missing.length) {
+    msg.textContent = 'Please fill in: ' + missing.join(', ') + '.';
+    msg.classList.add('show','err'); return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = 'Please enter a valid email address.';
+    msg.classList.add('show','err'); return;
+  }
+  if (!/^\d{10}$/.test(phone.replace(/\s/g,''))) {
+    msg.textContent = 'Phone number must be 10 digits.';
+    msg.classList.add('show','err'); return;
+  }
+
+  btn.disabled = true; btn.textContent = 'Registering…';
+
+  try {
+    const d = await apiGet({
+      action:'register', activity:id,
+      roll, name, email, phone, course, branch,
+      semester:sem, specialisation:g('spec'), section:g('section')
+    });
+    msg.innerHTML =
+      `✅ Registered for <b>${esc(d.activity)}</b>!`+
+      (d.seatsLeft!==null?` (${d.seatsLeft} seats remaining)`:'')+
+      `<br><br>Your Registration ID:<br>
+       <span class="rid">${esc(d.registrationId)}</span><br><br>
+       <small>📌 Save this ID — you need it to cancel. Show it at the venue if asked.</small>`;
+    msg.classList.add('show','ok');
+    btn.textContent = 'Registered ✓';
+    setTimeout(loadActivities, 3500);
+  } catch(e) {
+    msg.textContent = e.message;
+    msg.classList.add('show','err');
+    btn.disabled = false; btn.textContent = 'Confirm Registration ✓';
+  }
+}
+
+/* ── my registrations ── */
+async function loadMyRegs() {
+  const roll = document.getElementById('mr-roll').value.trim().toUpperCase();
+  const box  = document.getElementById('myregs');
+  if (!roll) { box.classList.remove('show'); return; }
+  box.innerHTML = '<div style="color:var(--ink-soft);font-size:13px;padding:6px 0">Loading…</div>';
+  box.classList.add('show');
+  try {
+    const regs = await apiGet({ action:'my_registrations', roll });
+    if (!regs.length) {
+      box.innerHTML = `<h3>My Registrations</h3><div style="color:var(--ink-soft);font-size:13.5px">No registrations found for <b>${esc(roll)}</b> yet.</div>`;
+      return;
+    }
+    box.innerHTML = `<h3>My Registrations — ${esc(roll)}</h3>` +
+      regs.map(r => {
+        const dt     = r.date ? new Date(r.date).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '';
+        const active = r.status === 'Registered';
+        return `<div class="mr-row">
+          <div>
+            <b>${esc(r.title)}</b>${dt?' · '+dt:''}${r.venue?' · '+esc(r.venue):''}
+            <div class="mr-rid">${esc(r.registrationId)}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="pill ${active?'reg':'can'}">${esc(r.status)}</span>
+            ${active?`<button class="link-danger" onclick="cancelReg('${esc(roll)}','${esc(r.registrationId)}')">Cancel</button>`:''}
+          </div>
+        </div>`;
+      }).join('');
+  } catch(e) {
+    box.innerHTML = `<h3>My Registrations</h3><div style="color:var(--rose);font-size:13.5px">${esc(e.message)}</div>`;
+  }
+}
+
+async function cancelReg(roll, rid) {
+  if (!confirm('Cancel this registration? This cannot be undone.')) return;
+  try {
+    await apiGet({ action:'cancel_registration', roll, rid });
+    loadMyRegs();
+    loadActivities();
+  } catch(e) { alert(e.message); }
+}
+
+function esc(s) {
+  return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+loadActivities();
+</script>
+</body>
+</html>
