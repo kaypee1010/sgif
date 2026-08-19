@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Learning Assessment · BTech CSE Sem 7 · SGIF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=Inconsolata&display=swap" rel="stylesheet">
+<style>
+/* ===== MODULE: CONFIG (visual) ===== */
+:root{
+  --teal:#0d9488; --teal-dark:#0f766e; --teal-light:#ccfbf1;
+  --amber:#f59e0b; --rose:#e11d48; --green:#16a34a;
+  --ink:#1f2937; --muted:#6b7280; --bg:#f8fafc; --card:#ffffff; --border:#e5e7eb;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; font-family:'DM Sans',sans-serif; color:var(--ink); background:var(--bg);
+  background-image: radial-gradient(circle at 1px 1px, rgba(15,118,110,0.05) 1px, transparent 0);
+  background-size: 22px 22px;
+  min-height:100vh; -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.serif{font-family:'DM Serif Display',serif; font-weight:400;}
+.mono{font-family:'Inconsolata',monospace;}
+nav{
+  display:flex; align-items:center; justify-content:space-between; padding:14px 22px;
+  background:var(--card); border-bottom:3px solid var(--teal); position:sticky; top:0; z-index:20;
+}
+.brand{display:flex; align-items:center; gap:10px;}
+.logo-dot{width:14px;height:14px;border-radius:50%;background:var(--teal);}
+.brand-text{font-size:14px; color:var(--muted);}
+.brand-text b{color:var(--ink);}
+.nav-right a{color:var(--teal-dark); text-decoration:none; font-size:13px; font-weight:500;}
+#app{max-width:640px; margin:0 auto; padding:24px 16px 80px;}
+.card{
+  background:var(--card); border:1px solid var(--border); border-radius:14px;
+  padding:26px; box-shadow:0 2px 10px rgba(15,23,42,0.04); position:relative; overflow:hidden;
+}
+.card::before{
+  content:''; position:absolute; top:0; right:0; width:70px; height:6px; background:var(--teal);
+  border-bottom-left-radius:8px;
+}
+.hidden{display:none !important;}
+label{display:block; font-size:13px; font-weight:500; color:var(--muted); margin-bottom:6px;}
+input[type=text]{
+  width:100%; padding:13px 14px; border:1.5px solid var(--border); border-radius:10px;
+  font-size:15px; font-family:'DM Sans',sans-serif; margin-bottom:14px; text-transform:uppercase;
+}
+select{
+  width:100%; padding:13px 14px; border:1.5px solid var(--border); border-radius:10px;
+  font-size:15px; font-family:'DM Sans',sans-serif; margin-bottom:14px; background:#fff;
+}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:14px 22px; border-radius:10px; border:none; font-size:15px; font-weight:700;
+  cursor:pointer; font-family:'DM Sans',sans-serif; transition:opacity .15s, transform .1s;
+}
+.btn:active{transform:scale(0.98);}
+.btn-primary{background:var(--teal); color:#fff; width:100%;}
+.btn-primary:disabled{opacity:.35; cursor:not-allowed;}
+.btn-ghost{background:transparent; color:var(--teal-dark); border:1.5px solid var(--teal); }
+.btn-link{background:none; border:none; color:var(--teal-dark); font-size:13px; text-decoration:underline; cursor:pointer; padding:4px;}
+.banner{padding:12px 14px; border-radius:10px; font-size:14px; margin-bottom:16px;}
+.banner-green{background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0;}
+.banner-amber{background:#fffbeb; color:#92400e; border:1px solid #fde68a;}
+.spinner{
+  width:18px; height:18px; border:2.5px solid rgba(13,148,136,.25); border-top-color:var(--teal);
+  border-radius:50%; animation:spin .7s linear infinite; display:inline-block;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.pill-box{display:flex; flex-wrap:wrap; gap:6px; margin:10px 0;}
+.pill{background:var(--teal-light); color:var(--teal-dark); font-size:12px; padding:5px 10px; border-radius:100px; font-weight:500;}
+.info-box{background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:12px 14px; font-size:13.5px; color:#78350f; margin:14px 0; line-height:1.5;}
+.consent{font-size:12px; color:var(--muted); line-height:1.5; margin:14px 0;}
+/* sub-bar */
+.subbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; font-size:13px; color:var(--muted); flex-wrap:wrap; gap:8px;}
+.subbar .timer{font-family:'Inconsolata',monospace; font-weight:700; font-size:16px; color:var(--teal-dark);}
+.subbar .timer.warn{color:var(--rose); animation:pulse 1s infinite;}
+@keyframes pulse{50%{opacity:.5;}}
+.progress-outer{height:6px; background:#e5e7eb; border-radius:100px; overflow:hidden; margin-bottom:18px;}
+.progress-inner{height:100%; background:var(--teal); transition:width .3s;}
+.section-pill{display:inline-block; background:var(--teal); color:#fff; font-size:11.5px; font-weight:700; padding:4px 12px; border-radius:100px; letter-spacing:.03em; margin-bottom:14px;}
+.item-text{font-size:20px; line-height:1.5; margin-bottom:20px;}
+.nudge-outer{height:4px; background:#f1f5f9; border-radius:100px; overflow:hidden; margin-bottom:8px;}
+.nudge-inner{height:100%; background:var(--teal); width:100%; transition:width .2s linear, background .2s;}
+.nudge-inner.amber{background:var(--amber);}
+.nudge-text{font-size:12.5px; color:var(--amber); font-style:italic; height:16px; margin-bottom:10px;}
+.scale-row{display:flex; flex-direction:column; gap:8px; margin-bottom:8px;}
+.scale-pill{
+  border:1.5px solid var(--border); border-radius:10px; padding:12px 16px; cursor:pointer;
+  display:flex; align-items:center; gap:10px; font-size:14.5px; transition:.15s;
+}
+.scale-pill:hover{border-color:var(--teal);}
+.scale-pill .num{
+  width:26px; height:26px; border-radius:50%; border:1.5px solid var(--border); display:flex;
+  align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0;
+}
+.scale-pill.selected{background:var(--teal); border-color:var(--teal); color:#fff;}
+.scale-pill.selected .num{background:#fff; color:var(--teal); border-color:#fff;}
+.opt-btn{
+  width:100%; text-align:left; padding:14px 16px; border:1.5px solid var(--border); border-radius:10px;
+  background:#fff; margin-bottom:10px; cursor:pointer; font-size:14.5px; display:flex; gap:10px;
+  align-items:center; font-family:'DM Sans',sans-serif; transition:.15s;
+}
+.opt-btn:hover{border-color:var(--teal);}
+.opt-btn.selected{border-color:var(--teal); background:var(--teal-light);}
+.opt-letter{width:24px; height:24px; border-radius:50%; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0;}
+.opt-btn.selected .opt-letter{background:var(--teal); color:#fff; border-color:var(--teal);}
+.cc-timer{font-family:'Inconsolata',monospace; font-weight:700; font-size:22px; text-align:center; margin-bottom:14px; color:var(--teal-dark);}
+.cc-timer.warn{color:var(--amber);}
+.cc-timer.danger{color:var(--rose); animation:pulse .6s infinite;}
+.divider{border:none; border-top:1px dashed var(--border); margin:16px 0;}
+.conf-label{font-size:13px; color:var(--muted); margin-bottom:8px;}
+.conf-row{display:flex; gap:8px;}
+.conf-pill{flex:1; text-align:center; padding:10px 6px; border:1.5px solid var(--border); border-radius:100px; cursor:pointer; font-size:12.5px; font-weight:600; transition:.15s;}
+.conf-pill.low.selected{background:#16a34a; border-color:#16a34a; color:#fff;}
+.conf-pill.med.selected{background:#f59e0b; border-color:#f59e0b; color:#fff;}
+.conf-pill.high.selected{background:#e11d48; border-color:#e11d48; color:#fff;}
+.navrow{display:flex; justify-content:space-between; align-items:center; margin-top:20px; gap:10px;}
+.finish-link{text-align:center; margin-top:10px;}
+.toast-wrap{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); z-index:100; display:flex; flex-direction:column; gap:8px; align-items:center;}
+.toast{background:#1f2937; color:#fff; padding:11px 18px; border-radius:10px; font-size:13.5px; box-shadow:0 4px 14px rgba(0,0,0,.2); max-width:340px; text-align:center;}
+.modal-overlay{position:fixed; inset:0; background:rgba(15,23,42,.5); display:flex; align-items:center; justify-content:center; z-index:200; padding:20px;}
+.modal-card{background:#fff; border-radius:14px; padding:24px; max-width:380px; width:100%;}
+.modal-card p{font-size:14.5px; line-height:1.5; color:var(--ink);}
+.modal-actions{display:flex; gap:10px; margin-top:16px;}
+.modal-actions .btn{flex:1;}
+.done-icon{font-size:44px; text-align:center; margin-bottom:6px;}
+.footer-note{font-size:12px; color:var(--muted); text-align:center; margin-top:18px;}
+.subid-box{background:#f8fafc; border:1px dashed var(--border); border-radius:10px; padding:10px 14px; font-size:12px; color:var(--muted); margin:16px 0; text-align:center;}
+@media (max-width:420px){ .item-text{font-size:18px;} }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">
+    <div class="logo-dot"></div>
+    <div class="brand-text"><b>K.P. Singh</b> &nbsp;·&nbsp; SGT University · BTech CSE · ALA · Sem 7</div>
+  </div>
+  <div class="nav-right"><a href="https://kpsingh.in" target="_blank">kpsingh.in ↗</a></div>
+</nav>
+
+<div id="app">
+
+  <!-- ================= S1 — REGISTRATION ================= -->
+  <section id="reg-screen" class="card">
+
+    <div id="reg-step1">
+      <h2 class="serif" style="margin-top:0;">Academic Learning Assessment</h2>
+      <p style="color:var(--muted); font-size:14px; margin-top:-8px;">One-time baseline · BTech CSE · 7th Semester</p>
+      <label for="rollInput">Roll Number</label>
+      <input type="text" id="rollInput" autocomplete="off" placeholder="e.g. 231302002">
+      <button class="btn btn-primary" id="lookupBtn" onclick="doLookup()">Look up →</button>
+      <div id="lookupSpinner" class="hidden" style="text-align:center; margin-top:12px;"><span class="spinner"></span></div>
+    </div>
+
+    <div id="reg-step2" class="hidden">
+      <div id="lookupBanner"></div>
+      <label for="nameInput">Full Name</label>
+      <input type="text" id="nameInput" style="text-transform:none;">
+      <label for="sectionSelect">Section</label>
+      <select id="sectionSelect">
+        <option value="">Select section (optional)</option>
+        <option value="7A">7A</option>
+        <option value="7B">7B</option>
+        <option value="7C">7C</option>
+        <option value="7D">7D</option>
+      </select>
+      <label>Branch / Semester</label>
+      <input type="text" value="BTech CSE · 7th Semester" disabled style="background:#f1f5f9; color:var(--muted);">
+
+      <div class="card" style="background:#f8fafc; border-style:dashed; margin:16px 0; padding:16px;">
+        <h3 class="serif" style="margin:0 0 8px; font-size:17px;">What is this assessment?</h3>
+        <p style="font-size:13.5px; line-height:1.6; color:var(--ink); margin:0 0 8px;">
+          This is your Academic Learning Profile baseline — a one-time, semester-start assessment that
+          helps us understand how you approach learning, not just what you know.
+        </p>
+        <p style="font-size:13.5px; line-height:1.6; color:var(--ink); margin:0 0 8px;">
+          There are no right or wrong answers on the Likert sections. Answer honestly — your responses
+          are used only for academic mentoring and research, never for grading.
+        </p>
+        <p style="font-size:13.5px; line-height:1.6; color:var(--ink); margin:0;">
+          The final section has 8 reasoning questions with a confidence rating. Try your best — your
+          confidence ratings are as important as your answers.
+        </p>
+        <p style="font-size:13px; color:var(--muted); margin:10px 0 0;">⏱ Recommended time: 20 minutes. The assessment auto-submits when time is up.</p>
+      </div>
+
+      <div class="info-box">
+        This assessment runs in full-screen mode. Leaving full-screen or switching tabs more than
+        twice will auto-submit whatever you've completed.
+      </div>
+
+      <p class="consent">
+        By beginning, you confirm that your responses may be used anonymously for educational research
+        at SGT University, subject to ethical guidelines.
+      </p>
+
+      <button class="btn btn-primary" id="beginBtn" onclick="beginAssessment()">Begin Assessment →</button>
+      <div id="beginSpinner" class="hidden" style="text-align:center; margin-top:12px;"><span class="spinner"></span> Preparing your assessment...</div>
+      <div id="beginError" class="hidden banner banner-amber" style="margin-top:12px;"></div>
+      <div style="text-align:center; margin-top:12px;">
+        <button class="btn-link" onclick="resetToStep1()">← Change roll number</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= S2 — ASSESSMENT ================= -->
+  <section id="ala-screen" class="hidden">
+    <div class="subbar">
+      <span id="subName"></span>
+      <span id="subProgress">Item 1 of 26</span>
+      <span class="timer mono" id="globalTimer">20:00</span>
+    </div>
+    <div class="progress-outer"><div class="progress-inner" id="progressBar" style="width:0%;"></div></div>
+
+    <div class="card" id="itemCard"></div>
+
+    <div class="finish-link"><button class="btn-link" onclick="onFinishPressed()">Finish now →</button></div>
+  </section>
+
+  <!-- ================= S2.5 — SELF-ESTIMATE (NEW v2.1, data-only, no reveal) ================= -->
+  <section id="predict-screen" class="card hidden">
+    <h2 class="serif" style="text-align:center; margin:0 0 12px;">One last thing.</h2>
+    <p style="text-align:center; color:var(--ink); font-size:14px; line-height:1.6; margin:0 0 24px;">
+      Thinking about the reasoning questions section only — how many do you think you got right?
+    </p>
+    <div style="max-width:380px; margin:0 auto;">
+      <input type="range" id="predictSlider" min="0" max="100" step="5" value="50"
+             style="width:100%;" oninput="updatePredictReadout(this.value)">
+      <div style="text-align:center; font-size:28px; font-weight:700; color:var(--teal-dark); margin:8px 0 4px;" id="predictReadout">50%</div>
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:24px;">
+        <span>0%</span><span>50%</span><span>100%</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="display:block; width:100%; max-width:380px; margin:0 auto;" onclick="confirmPrediction()">Continue →</button>
+    <button class="btn-link" style="display:block; margin:12px auto 0;" onclick="skipPrediction()">Prefer not to say</button>
+  </section>
+
+  <!-- ================= S3 — DONE ================= -->
+  <section id="done-screen" class="card hidden">
+    <div class="done-icon">✓</div>
+    <h2 class="serif" style="text-align:center; margin:0 0 4px;">Thank you, <span id="doneName"></span></h2>
+    <p style="text-align:center; color:var(--muted); font-size:14px;">Your Academic Learning Profile has been recorded.</p>
+    <p style="font-size:14px; line-height:1.6; text-align:center; color:var(--ink);">
+      Your responses have been saved to your SGIF Growth Profile. As you take part in more events and
+      quizzes this semester, your profile will grow to show your learning trajectory.
+    </p>
+    <div id="doneUnanswered" class="hidden banner banner-amber"></div>
+    <div class="subid-box mono" id="subIdBox"></div>
+    <a href="student.html" class="btn btn-ghost" style="display:block; text-align:center; text-decoration:none;">📋 View my record → student.html</a>
+    <p class="footer-note">You may now close this page.</p>
+  </section>
+
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+<div class="modal-overlay hidden" id="modalOverlay"><div class="modal-card" id="modalCard"></div></div>
+
+<script>
+/* ===== MODULE: CONFIG ===== */
+const API_URL   = 'https://script.google.com/macros/s/AKfycbzVS975A91DdDztHGIofJADerYEBDf2N9jPBjTyxO8Zr-0hH9Cv5e3-bevKdEdXny7k/exec';
+const ALA_ID    = 'ALA-BTECH-SEM7-2026';
+const COHORT_ID = 'BTECH_SEM7_2026';
+const BRANCH    = 'BTech CSE';
+const SEMESTER  = '7th';
+const GLOBAL_MINS       = 20;
+const LIKERT_NUDGE_MS   = 25000;
+const NUDGE_AMBER_MS    = 10000;
+const CC_HARD_MS        = 60000;
+const CC_WARN_MS        = 20000;
+const CC_DANGER_MS      = 10000;
+const WARNINGS_BEFORE_SUBMIT = 2;
+
+/* ===== ITEM BANK (fixed instrument — do not shuffle) ===== */
+const GM_ITEMS = [
+  "When I face a difficult problem, I see it as a chance to grow.",
+  "I believe my intelligence is fixed and cannot change much.",
+  "When I fail at something, I try to understand what went wrong.",
+  "Effort doesn't matter much — you either have the ability or you don't.",
+  "I enjoy being challenged even when I am not sure I will succeed."
+];
+const ASE_ITEMS = [
+  "How confident are you that you can understand difficult course material if you put in enough effort?",
+  "How confident are you that you can complete your assignments to a good standard even when they are hard?",
+  "How confident are you that you can do well in exams when you have prepared thoroughly?",
+  "How confident are you that you can figure out a solution when you encounter a problem you have never seen before?",
+  "How confident are you that you can keep up with the pace of your current semester?"
+];
+const HSO_ITEMS = [
+  "When I do not understand something in class, I ask my teacher or a peer for help.",
+  "I use online resources, textbooks, or study groups when I am stuck.",
+  "I prefer to struggle alone with a problem rather than ask for help, even if I am stuck for a long time.",
+  "I believe asking for help is a sign of wanting to learn, not a weakness."
+];
+const LO_ITEMS = [
+  "My main goal in this semester is to understand the subjects deeply, not just to pass the exams.",
+  "I feel satisfied when I truly understand a concept, even if my marks are not the highest.",
+  "I actively connect what I learn in class to real-world problems or my future career.",
+  "I find myself thinking about course topics even outside class hours."
+];
+const LIKERT_SECTIONS = [
+  { key:'gm',  name:'Growth Mindset',            items:GM_ITEMS,  reverse:[1,3], scale:['Strongly Disagree','Disagree','Neutral','Agree','Strongly Agree'] },
+  { key:'ase', name:'Academic Self-Efficacy',     items:ASE_ITEMS, reverse:[],    scale:['Not at all confident','Slightly confident','Moderately confident','Quite confident','Completely confident'] },
+  { key:'hso', name:'Help-Seeking Orientation',   items:HSO_ITEMS, reverse:[2],   scale:['Never','Rarely','Sometimes','Often','Always'] },
+  { key:'lo',  name:'Learning Orientation',       items:LO_ITEMS,  reverse:[],    scale:['Strongly Disagree','Disagree','Neutral','Agree','Strongly Agree'] }
+];
+
+/* ===== MODULE: STATE ===== */
+let ITEMS = [];              // built after CC questions arrive — 18 Likert + 8 CC = 26
+let TOTAL_ITEMS = 0;
+const STATE = {
+  roll:'', name:'', section:'', token:null,
+  answers: [], confidence: [], itemTimes: [],
+  currentIndex: 0
+};
+let SESSION_ID = crypto.randomUUID();
+let quizStartMs = 0, itemStartMs = 0;
+let globalRemainingMs = GLOBAL_MINS * 60000;
+let globalTimerHandle = null, itemTimerHandle = null, itemTimerRAF = null;
+let integrityFlag = false;
+const integrityViolations = [];
+let violationCount = 0;
+let submitted = false;
+
+/* ===== MODULE: API ===== */
+async function doLookup(){
+  const roll = document.getElementById('rollInput').value.trim().toUpperCase();
+  if(!roll){ return; }
+  STATE.roll = roll;
+  document.getElementById('lookupSpinner').classList.remove('hidden');
+  document.getElementById('lookupBtn').disabled = true;
+  let banner = '';
+  try{
+    const r = await fetch(`${API_URL}?action=student_lookup&roll=${encodeURIComponent(roll)}`);
+    const j = await r.json();
+    if(j.success && j.data && j.data.name){
+      STATE.name = j.data.name || '';
+      STATE.section = j.data.section || '';
+      banner = `<div class="banner banner-green">Welcome back, ${escapeHtml(STATE.name)}!</div>`;
+    } else {
+      banner = `<div class="banner banner-amber">Fill your details below</div>`;
+    }
+  } catch(e){
+    banner = `<div class="banner banner-amber">Fill your details below</div>`;
+  }
+  document.getElementById('lookupBanner').innerHTML = banner;
+  document.getElementById('nameInput').value = STATE.name || '';
+  if(STATE.section) document.getElementById('sectionSelect').value = STATE.section;
+  document.getElementById('lookupSpinner').classList.add('hidden');
+  document.getElementById('lookupBtn').disabled = false;
+  document.getElementById('reg-step1').classList.add('hidden');
+  document.getElementById('reg-step2').classList.remove('hidden');
+}
+
+function resetToStep1(){
+  document.getElementById('reg-step2').classList.add('hidden');
+  document.getElementById('reg-step1').classList.remove('hidden');
+}
+
+async function beginAssessment(){
+  STATE.name = document.getElementById('nameInput').value.trim() || STATE.name || STATE.roll;
+  STATE.section = document.getElementById('sectionSelect').value || STATE.section || '';
+
+  // request fullscreen — best effort, never blocks
+  try{
+    if(document.documentElement.requestFullscreen){ await document.documentElement.requestFullscreen(); }
+  } catch(e){ /* silently continue */ }
+
+  document.getElementById('beginBtn').disabled = true;
+  document.getElementById('beginSpinner').classList.remove('hidden');
+  document.getElementById('beginError').classList.add('hidden');
+
+  try{
+    const url = `${API_URL}?action=start_quiz&quiz=${encodeURIComponent(ALA_ID)}&roll=${encodeURIComponent(STATE.roll)}&sessionId=${encodeURIComponent(SESSION_ID)}&duration=${GLOBAL_MINS}`;
+    const r = await fetch(url);
+    const j = await r.json();
+    if(!j.success) throw new Error(j.message || 'Could not load the assessment.');
+    STATE.token = j.data.token;
+    buildItems(j.data.questions);
+    startAssessment();
+  } catch(e){
+    document.getElementById('beginError').textContent = 'Could not load the assessment. Please check your connection and try again.';
+    document.getElementById('beginError').classList.remove('hidden');
+  } finally {
+    document.getElementById('beginBtn').disabled = false;
+    document.getElementById('beginSpinner').classList.add('hidden');
+  }
+}
+
+function buildItems(ccQuestions){
+  ITEMS = [];
+  LIKERT_SECTIONS.forEach(sec=>{
+    sec.items.forEach((text,i)=>{
+      ITEMS.push({ type:'likert', sectionKey:sec.key, sectionName:sec.name, text, scale:sec.scale, reversed: sec.reverse.indexOf(i)!==-1 });
+    });
+  });
+  ccQuestions.forEach(q=>{
+    ITEMS.push({ type:'cc', id:q.id, text:q.q, opts:q.opts||[], tag:q.tag||'', difficulty:q.difficulty||'' });
+  });
+  TOTAL_ITEMS = ITEMS.length;
+  STATE.answers    = new Array(TOTAL_ITEMS).fill(null);
+  STATE.confidence = new Array(TOTAL_ITEMS).fill(0);
+  STATE.itemTimes  = new Array(TOTAL_ITEMS).fill(0);
+}
+
+/* ===== MODULE: INTEGRITY ===== */
+function recordViolation(type){
+  if(integrityFlag || submitted) return;
+  violationCount++;
+  integrityViolations.push({ type, itemIndex: STATE.currentIndex, elapsedMs: Date.now() - quizStartMs });
+  if(violationCount <= WARNINGS_BEFORE_SUBMIT){
+    showToast(`Warning ${violationCount}/${WARNINGS_BEFORE_SUBMIT}: leaving the assessment view is recorded. One more and it auto-submits.`);
+  } else {
+    integrityFlag = true;
+    doSubmit({ auto:true, reason:'integrity' });
+  }
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) recordViolation('TAB_SWITCH'); });
+document.addEventListener('fullscreenchange', ()=>{ if(!document.fullscreenElement && quizStartMs) recordViolation('FULLSCREEN_EXIT'); });
+document.addEventListener('contextmenu', e=>{ if(quizStartMs && !submitted) e.preventDefault(); });
+
+/* ===== MODULE: UI — flow control ===== */
+function startAssessment(){
+  document.getElementById('reg-screen').classList.add('hidden');
+  document.getElementById('ala-screen').classList.remove('hidden');
+  quizStartMs = Date.now();
+  document.getElementById('subName').textContent = STATE.name + (STATE.section ? ' · ' + STATE.section : '');
+  startGlobalTimer();
+  renderItem(0);
+}
+
+function startGlobalTimer(){
+  globalRemainingMs = GLOBAL_MINS * 60000;
+  updateGlobalTimerDisplay();
+  globalTimerHandle = setInterval(()=>{
+    globalRemainingMs -= 1000;
+    updateGlobalTimerDisplay();
+    if(globalRemainingMs <= 0){
+      clearInterval(globalTimerHandle);
+      doSubmit({ auto:true, reason:'timeout' });
+    }
+  }, 1000);
+}
+function updateGlobalTimerDisplay(){
+  const el = document.getElementById('globalTimer');
+  const s = Math.max(0, Math.round(globalRemainingMs/1000));
+  const mm = String(Math.floor(s/60)).padStart(2,'0');
+  const ss = String(s%60).padStart(2,'0');
+  el.textContent = `${mm}:${ss}`;
+  el.classList.toggle('warn', globalRemainingMs <= 5*60000);
+}
+
+function renderItem(i){
+  clearItemTimer();
+  STATE.currentIndex = i;
+  itemStartMs = Date.now();
+  document.getElementById('subProgress').textContent = `Item ${i+1} of ${TOTAL_ITEMS}`;
+  document.getElementById('progressBar').style.width = Math.round((i/TOTAL_ITEMS)*100) + '%';
+  const it = ITEMS[i];
+  const card = document.getElementById('itemCard');
+
+  if(it.type === 'likert'){
+    card.innerHTML = renderLikertCard(it, i);
+    startLikertNudge();
+  } else {
+    card.innerHTML = renderCCCard(it, i);
+    startCCTimer();
+  }
+  updateNavButtons(i);
+}
+
+function renderLikertCard(it, i){
+  const selected = STATE.answers[i];
+  const rows = it.scale.map((label, idx)=>{
+    const val = idx+1;
+    return `<div class="scale-pill ${selected===val?'selected':''}" onclick="selectLikert(${i},${val})">
+      <span class="num">${val}</span><span>${label}</span>
+    </div>`;
+  }).join('');
+  return `
+    <span class="section-pill">${it.sectionName}</span>
+    <div class="item-text serif">${escapeHtml(it.text)}</div>
+    <div class="nudge-outer"><div class="nudge-inner" id="nudgeBar"></div></div>
+    <div class="nudge-text" id="nudgeText"></div>
+    <div class="scale-row">${rows}</div>
+  `;
+}
+
+function renderCCCard(it, i){
+  const letters = ['A','B','C','D'];
+  const selected = STATE.answers[i];
+  const conf = STATE.confidence[i];
+  const opts = it.opts.map((o,idx)=>`
+    <button class="opt-btn ${selected===idx?'selected':''}" onclick="selectCC(${i},${idx})">
+      <span class="opt-letter">${letters[idx]}</span><span>${escapeHtml(o)}</span>
+    </button>`).join('');
+  return `
+    <span class="section-pill" style="background:var(--teal-dark);">Confidence Calibration · Q${i-17} of 8</span>
+    <div class="cc-timer mono" id="ccTimer">1:00</div>
+    <div class="item-text serif" style="font-size:18px;">${escapeHtml(it.text)}</div>
+    ${opts}
+    <hr class="divider">
+    <div class="conf-label">How confident are you?</div>
+    <div class="conf-row">
+      <div class="conf-pill low ${conf===1?'selected':''}" onclick="selectConf(${i},1)">🟢 Low</div>
+      <div class="conf-pill med ${conf===2?'selected':''}" onclick="selectConf(${i},2)">🟡 Medium</div>
+      <div class="conf-pill high ${conf===3?'selected':''}" onclick="selectConf(${i},3)">🔴 High</div>
+    </div>
+  `;
+}
+
+function selectLikert(i, val){
+  STATE.answers[i] = val;
+  renderItem(i); // re-render to show selection (timer restarts intentionally per spec: resets on navigation)
+}
+function selectCC(i, idx){
+  STATE.answers[i] = idx;
+  document.querySelectorAll('#itemCard .opt-btn').forEach((b,bi)=>b.classList.toggle('selected', bi===idx));
+  updateNavButtons(i);
+}
+function selectConf(i, val){
+  STATE.confidence[i] = val;
+  document.querySelectorAll('#itemCard .conf-pill').forEach(p=>p.classList.remove('selected'));
+  const cls = val===1?'low':val===2?'med':'high';
+  document.querySelector(`#itemCard .conf-pill.${cls}`).classList.add('selected');
+  updateNavButtons(i);
+}
+
+function updateNavButtons(i){
+  const it = ITEMS[i];
+  const isLast = i === TOTAL_ITEMS - 1;
+  let canAdvance = false;
+  if(it.type === 'likert') canAdvance = STATE.answers[i] != null;
+  else canAdvance = STATE.answers[i] != null && STATE.answers[i] >= 0 && STATE.confidence[i] > 0;
+
+  const nav = document.createElement('div');
+  nav.className = 'navrow';
+  nav.innerHTML = `
+    <button class="btn btn-ghost" id="prevBtn" onclick="goPrev()" ${i===0?'disabled':''} style="${i===0?'opacity:.35':''}">← Previous</button>
+    <button class="btn btn-primary" id="nextBtn" onclick="${isLast?'onFinishPressed()':'goNext()'}" ${canAdvance?'':'disabled'} style="width:auto; ${canAdvance?'':'opacity:.4;'}">${isLast?'Finish Assessment →':'Next →'}</button>
+  `;
+  const old = document.getElementById('itemCard').querySelector('.navrow');
+  if(old) old.remove();
+  document.getElementById('itemCard').appendChild(nav);
+}
+
+function goNext(){
+  recordItemTime(STATE.currentIndex);
+  if(STATE.currentIndex < TOTAL_ITEMS - 1) renderItem(STATE.currentIndex + 1);
+}
+function goPrev(){
+  recordItemTime(STATE.currentIndex);
+  if(STATE.currentIndex > 0) renderItem(STATE.currentIndex - 1);
+}
+function recordItemTime(i){
+  STATE.itemTimes[i] = Date.now() - itemStartMs;
+}
+
+/* ===== per-item timers ===== */
+function clearItemTimer(){
+  if(itemTimerHandle) clearInterval(itemTimerHandle);
+  if(itemTimerRAF) cancelAnimationFrame(itemTimerRAF);
+  itemTimerHandle = null; itemTimerRAF = null;
+}
+function startLikertNudge(){
+  const bar = document.getElementById('nudgeBar');
+  const txt = document.getElementById('nudgeText');
+  const start = Date.now();
+  function tick(){
+    const elapsed = Date.now() - start;
+    const remaining = Math.max(0, LIKERT_NUDGE_MS - elapsed);
+    const pct = (remaining / LIKERT_NUDGE_MS) * 100;
+    if(bar){
+      bar.style.width = pct + '%';
+      bar.classList.toggle('amber', remaining <= NUDGE_AMBER_MS);
+    }
+    if(remaining <= 0){
+      if(txt) txt.textContent = 'Go with your first instinct ↓';
+      return; // does NOT auto-advance
+    }
+    itemTimerRAF = requestAnimationFrame(tick);
+  }
+  tick();
+}
+function startCCTimer(){
+  const el = document.getElementById('ccTimer');
+  const start = Date.now();
+  itemTimerHandle = setInterval(()=>{
+    const elapsed = Date.now() - start;
+    const remaining = Math.max(0, CC_HARD_MS - elapsed);
+    const s = Math.ceil(remaining/1000);
+    if(el){
+      el.textContent = `0:${String(s).padStart(2,'0')}`;
+      el.classList.toggle('warn', remaining <= CC_WARN_MS && remaining > CC_DANGER_MS);
+      el.classList.toggle('danger', remaining <= CC_DANGER_MS);
+    }
+    if(remaining <= 0){
+      clearInterval(itemTimerHandle);
+      autoAdvanceCC(STATE.currentIndex);
+    }
+  }, 250);
+}
+function autoAdvanceCC(i){
+  if(STATE.answers[i] == null) STATE.answers[i] = -1;
+  recordItemTime(i);
+  if(i < TOTAL_ITEMS - 1) renderItem(i+1);
+  else onFinishPressed();
+}
+
+/* ===== MODULE: SUBMISSION — never blocked, soft-warned if incomplete ===== */
+function countAnswered(){
+  let n = 0;
+  for(let i=0;i<TOTAL_ITEMS;i++){
+    const it = ITEMS[i];
+    if(it.type==='likert' && STATE.answers[i]!=null) n++;
+    if(it.type==='cc' && STATE.answers[i]!=null && STATE.answers[i]>=0) n++;
+  }
+  return n;
+}
+function onFinishPressed(){
+  recordItemTime(STATE.currentIndex);
+  const unanswered = TOTAL_ITEMS - countAnswered();
+  if(unanswered > 0){
+    showModal(
+      `You have ${unanswered} unanswered item${unanswered>1?'s':''}. You can go back and complete them, or finish now with what you have.`,
+      'Go back', closeModal,
+      'Finish anyway', ()=>{ closeModal(); showPredictScreen(); }
+    );
+  } else {
+    showPredictScreen();
+  }
+}
+
+/* ===== MODULE: SELF-ESTIMATE (NEW v2.1) ===== */
+function showPredictScreen(){
+  document.getElementById('ala-screen').classList.add('hidden');
+  document.getElementById('predict-screen').classList.remove('hidden');
+}
+function updatePredictReadout(v){
+  document.getElementById('predictReadout').textContent = v + '%';
+}
+function confirmPrediction(){
+  const v = Number(document.getElementById('predictSlider').value);
+  document.getElementById('predict-screen').classList.add('hidden');
+  doSubmit({ predictedCcPct: v });
+}
+function skipPrediction(){
+  document.getElementById('predict-screen').classList.add('hidden');
+  doSubmit({});
+}
+
+function scoreALQ(raw, reverseIdx){
+  const valid = [];
+  raw.forEach((v,i)=>{ if(v!=null){ valid.push(reverseIdx.indexOf(i)!==-1 ? (6-v) : v); } });
+  if(!valid.length) return null;
+  const mean = valid.reduce((s,v)=>s+v,0) / valid.length;
+  return Math.round((mean-1)/4*100);
+}
+
+async function doSubmit(opts){
+  if(submitted) return;
+  submitted = true;
+  clearItemTimer();
+  if(globalTimerHandle) clearInterval(globalTimerHandle);
+
+  const gmRaw  = STATE.answers.slice(0,5);
+  const aseRaw = STATE.answers.slice(5,10);
+  const hsoRaw = STATE.answers.slice(10,14);
+  const loRaw  = STATE.answers.slice(14,18);
+
+  const ccAnswers = [];
+  for(let i=18;i<TOTAL_ITEMS;i++){
+    ccAnswers.push({
+      questionId: ITEMS[i].id,
+      selectedIndex: STATE.answers[i] != null ? STATE.answers[i] : -1,
+      confidence: STATE.confidence[i] || 0
+    });
+  }
+
+  const payload = {
+    action: 'ala_response',
+    token: STATE.token,
+    sessionId: SESSION_ID,
+    alaId: ALA_ID,
+    cohortId: COHORT_ID,
+    name: STATE.name, roll: STATE.roll, section: STATE.section,
+    branch: BRANCH, semester: SEMESTER,
+    submittedAt: new Date().toISOString(),
+    timeTaken: Math.round((Date.now() - quizStartMs)/1000),
+    gm_score:  scoreALQ(gmRaw,  [1,3]),
+    ase_score: scoreALQ(aseRaw, []),
+    hso_score: scoreALQ(hsoRaw, [2]),
+    lo_score:  scoreALQ(loRaw,  []),
+    gm_raw: gmRaw, ase_raw: aseRaw, hso_raw: hsoRaw, lo_raw: loRaw,
+    cc_answers: ccAnswers,
+    integrityFlag, integrityViolations,
+    elicitation: { item_times: STATE.itemTimes }
+  };
+  if(opts && opts.predictedCcPct !== undefined) payload.predictedCcPct = opts.predictedCcPct;   // NEW v2.1 — omitted if skipped
+
+  showDoneScreen({ pending:true });
+
+  try{
+    const r = await fetch(API_URL, { method:'POST', body: JSON.stringify(payload) });
+    const j = await r.json();
+    if(j.success){
+      showDoneScreen({ success:true });
+    } else {
+      showDoneScreen({ success:false, message: j.message });
+    }
+  } catch(e){
+    showDoneScreen({ success:false, message:'Network error.' });
+  }
+}
+
+function showDoneScreen(result){
+  document.getElementById('ala-screen').classList.add('hidden');
+  document.getElementById('done-screen').classList.remove('hidden');
+  document.getElementById('doneName').textContent = STATE.name || STATE.roll;
+  const unanswered = TOTAL_ITEMS - countAnswered();
+  const unansweredEl = document.getElementById('doneUnanswered');
+  if(unanswered > 0){
+    unansweredEl.textContent = `${unanswered} item(s) were left unanswered.`;
+    unansweredEl.classList.remove('hidden');
+  }
+  const subId = STATE.roll + '-' + ALA_ID + '-' + Date.now().toString(36).toUpperCase();
+  const box = document.getElementById('subIdBox');
+  if(result.pending){
+    box.textContent = 'Saving your responses...';
+  } else if(result.success){
+    box.textContent = `Submission ID: ${subId} · Saved to SGIF`;
+  } else {
+    box.innerHTML = `Could not save automatically (${escapeHtml(result.message||'network error')}). <button class="btn-link" onclick="retrySubmitFromDone()">Retry</button>`;
+  }
+}
+function retrySubmitFromDone(){
+  submitted = false;
+  doSubmit({});
+}
+
+/* ===== small UI helpers ===== */
+function showToast(msg){
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(()=>t.remove(), 5000);
+}
+function showModal(message, primaryLabel, primaryFn, secondaryLabel, secondaryFn){
+  document.getElementById('modalCard').innerHTML = `
+    <p>${escapeHtml(message)}</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalPrimary">${primaryLabel}</button>
+      <button class="btn btn-primary" id="modalSecondary">${secondaryLabel}</button>
+    </div>`;
+  document.getElementById('modalOverlay').classList.remove('hidden');
+  document.getElementById('modalPrimary').onclick = primaryFn;
+  document.getElementById('modalSecondary').onclick = secondaryFn;
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.add('hidden'); }
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+document.getElementById('rollInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLookup(); });
+</script>
+</body>
+</html>
