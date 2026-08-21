@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Quiz Control · SGIF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600;700&family=Inconsolata:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --accent:      #2563eb; --accent-pale:#dbeafe; --accent-deep:#1d4ed8;
+  --ink:         #1e293b; --ink-soft:#64748b; --slate:#475569;
+  --paper:       #f8fafc; --cream:#f1f5f9; --line:#e2e8f0;
+  --green:       #059669; --green-pale:#ecfdf5;
+  --rose:        #e11d48; --rose-pale:#ffe4e6;
+  --amber:       #b45309; --amber-pale:#fef3c7;
+  --mono:        'Inconsolata', monospace;
+  --radius:      8px; --radius-lg:16px;
+  --shadow-sm:   0 1px 4px rgba(30,41,59,.07);
+  --shadow-md:   0 4px 16px rgba(30,41,59,.10);
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'DM Sans',sans-serif; font-size:15.5px;
+  line-height:1.6; color:var(--ink);
+  background:linear-gradient(150deg,var(--paper) 0%,#eef2f7 100%);
+  min-height:100vh;
+}
+
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:rgba(248,250,252,.96); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line); padding:11px 26px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.nav-brand { display:flex; align-items:center; gap:11px; }
+.nav-logo {
+  width:36px; height:36px; border-radius:50%;
+  background:var(--ink); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'DM Serif Display',serif; font-size:16px; flex-shrink:0;
+}
+.nav-name { font-family:'DM Serif Display',serif; font-size:15.5px; line-height:1.2; }
+.nav-sub  { font-family:var(--mono); font-size:10px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-soft); }
+.nav-links { display:flex; gap:8px; align-items:center; }
+.nav-link {
+  font-family:var(--mono); font-size:11px; font-weight:600;
+  padding:7px 14px; border-radius:20px; text-decoration:none;
+  border:1px solid var(--line); color:var(--ink-soft); transition:all .15s;
+}
+.nav-link:hover { border-color:var(--accent); color:var(--accent); }
+
+main { position:relative; z-index:1; max-width:920px; margin:0 auto; padding:100px 22px 80px; }
+
+.page-head { margin-bottom:22px; }
+.eyebrow { font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px; }
+h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:30px; margin-bottom:6px; }
+.lede { color:var(--ink-soft); font-size:14px; max-width:600px; }
+
+/* WARNING STRIP */
+.warn-strip {
+  display:flex; gap:12px; align-items:flex-start;
+  background:var(--rose-pale); border:1px solid #fecdd3; border-left:4px solid var(--rose);
+  border-radius:var(--radius-lg); padding:14px 18px; margin:20px 0;
+  font-size:13px; color:#881337; line-height:1.55;
+}
+.warn-strip b { color:var(--rose); }
+
+/* KEY BAR */
+.key-bar {
+  display:flex; gap:10px; align-items:center; background:#fff;
+  border:1px solid var(--line); border-radius:var(--radius-lg);
+  padding:14px 18px; margin-bottom:22px; flex-wrap:wrap; box-shadow:var(--shadow-sm);
+}
+.key-bar label { font-family:var(--mono); font-size:10.5px; text-transform:uppercase; color:var(--ink-soft); white-space:nowrap; }
+.key-bar input {
+  flex:1; min-width:200px; padding:9px 12px; border:1px solid var(--line);
+  border-radius:6px; font-family:var(--mono); font-size:13px;
+}
+.key-bar input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-pale); }
+.key-note { font-size:11.5px; color:var(--ink-soft); width:100%; margin-top:2px; }
+
+.btn { padding:9px 18px; border:1px solid var(--accent); border-radius:6px; background:var(--accent); color:#fff; font-family:'DM Sans',sans-serif; font-size:13.5px; font-weight:600; cursor:pointer; white-space:nowrap; }
+.btn:hover { background:var(--accent-deep); }
+.btn:disabled { opacity:.5; cursor:not-allowed; }
+.btn.danger { background:var(--rose); border-color:var(--rose); }
+.btn.danger:hover { background:#be123c; }
+.btn.go { background:var(--green); border-color:var(--green); }
+.btn.go:hover { background:#047857; }
+.btn.ghost { background:#fff; color:var(--accent); }
+.btn.ghost:hover { background:var(--accent-pale); }
+
+/* MANUAL TOGGLE CARD */
+.manual-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); padding:20px 22px; margin-bottom:26px; box-shadow:var(--shadow-sm); }
+.manual-card h3 { font-family:'DM Serif Display',serif; font-size:17px; margin-bottom:4px; }
+.manual-card .hint { font-size:12.5px; color:var(--ink-soft); margin-bottom:14px; }
+.manual-row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.manual-row input {
+  flex:1; min-width:200px; padding:9px 12px; border:1px solid var(--line);
+  border-radius:6px; font-family:var(--mono); font-size:13px; text-transform:uppercase;
+}
+.manual-row input:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-pale); }
+
+/* TABLE */
+.table-card { background:#fff; border:1px solid var(--line); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--shadow-md); }
+.table-head { display:flex; justify-content:space-between; align-items:center; padding:16px 22px; border-bottom:1px solid var(--line); }
+.table-head h3 { font-family:'DM Serif Display',serif; font-size:18px; }
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-soft); padding:10px 16px; border-bottom:1px solid var(--line); background:var(--cream); }
+td { padding:12px 16px; border-bottom:1px solid var(--line); font-size:13.5px; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+.quiz-id { font-family:var(--mono); font-weight:700; }
+.pill { padding:4px 12px; border-radius:14px; font-size:11.5px; font-weight:700; font-family:var(--mono); display:inline-block; }
+.pill.active   { background:var(--green-pale); color:var(--green); }
+.pill.inactive { background:var(--rose-pale); color:var(--rose); }
+.meta { font-family:var(--mono); font-size:11px; color:var(--ink-soft); }
+.row-actions { display:flex; gap:6px; }
+.row-actions button {
+  font-family:var(--mono); font-size:10.5px; font-weight:700; padding:5px 11px;
+  border-radius:12px; cursor:pointer; border:1px solid;
+}
+.row-actions .act-deactivate { background:#fff; color:var(--rose); border-color:var(--rose); }
+.row-actions .act-deactivate:hover { background:var(--rose); color:#fff; }
+.row-actions .act-activate { background:#fff; color:var(--green); border-color:var(--green); }
+.row-actions .act-activate:hover { background:var(--green); color:#fff; }
+
+.spinner { width:26px; height:26px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:36px auto; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty { padding:36px; text-align:center; color:var(--ink-soft); font-size:13.5px; }
+
+.msg { display:none; padding:11px 15px; border-radius:7px; font-size:13px; margin-top:12px; }
+.msg.show { display:block; }
+.msg.ok  { background:var(--green-pale); color:var(--green); border-left:3px solid var(--green); }
+.msg.err { background:var(--rose-pale);  color:var(--rose);  border-left:3px solid var(--rose); }
+
+@media(max-width:640px) {
+  main { padding-top:92px; }
+  table, thead, tbody, th, td, tr { display:block; }
+  thead { display:none; }
+  tr { border-bottom:1px solid var(--line); padding:10px 16px; }
+  td { border-bottom:none; padding:4px 0; }
+  td::before { content: attr(data-label) ": "; font-family:var(--mono); font-size:10px; color:var(--ink-soft); text-transform:uppercase; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">KP</div>
+    <div>
+      <div class="nav-name">K.P. Singh</div>
+      <div class="nav-sub">SGIF · Admin</div>
+    </div>
+  </div>
+  <div class="nav-links">
+    <a class="nav-link" href="events.html">🏆 Events</a>
+    <a class="nav-link" href="admin_seed_tool.html">🌱 Seed Questions</a>
+  </div>
+</nav>
+
+<main>
+
+  <div class="page-head">
+    <div class="eyebrow">SGIF · Admin</div>
+    <h1>Quiz Control</h1>
+    <p class="lede">Turn any quiz on or off, live. A deactivated quiz stops accepting new answers on connected devices within a few seconds — it does not discard or reject anything a student has already submitted or is in the middle of submitting.</p>
+  </div>
+
+  <div class="warn-strip">
+    <div>⚠️</div>
+    <div>
+      <b>This is a kill switch, not registration control.</b> It has nothing to do with the Activities sheet's Status column or seat capacity — it only controls whether a running quiz page keeps accepting answers. Use it when something needs to stop right now (wrong question bank, a leak, a technical issue) — not for normal open/close scheduling, which the Activities tab already handles via Reg Start/End and Event Start/End.
+    </div>
+  </div>
+
+  <div class="key-bar">
+    <label for="admin-key">Admin key</label>
+    <input id="admin-key" type="password" placeholder="ENTER YOUR API KEY" autocomplete="off">
+    <button class="btn ghost" onclick="loadStatusList()">Unlock &amp; load →</button>
+    <div class="key-note">Not saved anywhere — you'll re-enter it each time you open this page. Get it from K.P. directly, never over a group chat.</div>
+  </div>
+
+  <div class="manual-card">
+    <h3>Toggle any Quiz_ID directly</h3>
+    <p class="hint">Use this for a quiz that hasn't had any attempts yet — it won't appear in the table below until someone starts it, but you can still pre-activate or pre-deactivate it here.</p>
+    <div class="manual-row">
+      <input id="manual-quiz" placeholder="QUIZ_ID, e.g. LEAGUEOPENER-01">
+      <button class="btn go" onclick="manualSet(true)">Activate</button>
+      <button class="btn danger" onclick="manualSet(false)">Deactivate</button>
+    </div>
+    <div class="msg" id="manual-msg"></div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">
+      <h3>All known quizzes</h3>
+      <button class="btn ghost" onclick="loadStatusList()">↻ Refresh</button>
+    </div>
+    <div id="table-body">
+      <div class="empty">Enter your admin key above and click "Unlock &amp; load" to see quiz status.</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+/* ============================================================
+   SGIF ADMIN — QUIZ CONTROL — admin.html
+   Reads/writes: quiz_status_list, set_quiz_status (both api_key gated)
+   ============================================================ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzVS975A91DdDztHGIofJADerYEBDf2N9jPBjTyxO8Zr-0hH9Cv5e3-bevKdEdXny7k/exec';
+
+function esc(s) {
+  return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function getKey() { return document.getElementById('admin-key').value.trim(); }
+
+async function apiGet(params) {
+  const qs  = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+  const url = API_URL + (API_URL.includes('?')?'&':'?') + qs;
+  const res = await fetch(url);
+  const j   = await res.json();
+  if (!j.success) throw new Error(j.message || 'Request failed');
+  return j.data;
+}
+
+async function apiPost(payload) {
+  const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(payload) });
+  const j   = await res.json();
+  if (!j.success) throw new Error(j.message || 'Request failed');
+  return j.data;
+}
+
+async function loadStatusList() {
+  const key = getKey();
+  const wrap = document.getElementById('table-body');
+  if (!key) {
+    wrap.innerHTML = '<div class="empty">Enter your admin key first.</div>';
+    return;
+  }
+  wrap.innerHTML = '<div class="spinner"></div>';
+  try {
+    const list = await apiGet({ action:'quiz_status_list', key });
+    if (!list.length) {
+      wrap.innerHTML = '<div class="empty">No quizzes on record yet — nothing has been attempted or manually toggled.</div>';
+      return;
+    }
+    wrap.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Quiz_ID</th><th>Status</th><th>Attempts</th><th>Cohort</th><th>Last seen</th><th>Updated</th><th></th>
+        </tr></thead>
+        <tbody>${list.map(rowHtml).join('')}</tbody>
+      </table>`;
+  } catch(e) {
+    wrap.innerHTML = `<div class="empty">Could not load — ${esc(e.message)}</div>`;
+  }
+}
+
+function rowHtml(o) {
+  const lastSeen = o.lastSeen ? new Date(o.lastSeen).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '—';
+  const updated  = o.updatedOn ? new Date(o.updatedOn).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + (o.updatedBy?' · '+esc(o.updatedBy):'') : '—';
+  return `
+    <tr id="row-${esc(o.quiz)}">
+      <td data-label="Quiz_ID"><span class="quiz-id">${esc(o.quiz)}</span></td>
+      <td data-label="Status"><span class="pill ${o.active?'active':'inactive'}">${o.active?'ACTIVE':'INACTIVE'}</span></td>
+      <td data-label="Attempts">${o.attempts}</td>
+      <td data-label="Cohort"><span class="meta">${esc(o.cohortId)||'—'}</span></td>
+      <td data-label="Last seen"><span class="meta">${lastSeen}</span></td>
+      <td data-label="Updated"><span class="meta">${updated}</span></td>
+      <td data-label="">
+        <div class="row-actions">
+          ${o.active
+            ? `<button class="act-deactivate" onclick="toggleRow('${esc(o.quiz)}', false)">Deactivate</button>`
+            : `<button class="act-activate" onclick="toggleRow('${esc(o.quiz)}', true)">Activate</button>`}
+        </div>
+      </td>
+    </tr>`;
+}
+
+async function toggleRow(quiz, active) {
+  const key = getKey();
+  if (!key) { alert('Enter your admin key first.'); return; }
+  if (!active && !confirm(`Deactivate ${quiz}? Any student mid-quiz on a connected device will be auto-submitted with whatever they have within the next poll cycle.`)) return;
+  try {
+    await apiPost({ action:'set_quiz_status', quiz, active, admin:'K.P. Singh', key });
+    loadStatusList();
+  } catch(e) {
+    alert(e.message);
+  }
+}
+
+async function manualSet(active) {
+  const key  = getKey();
+  const quiz = document.getElementById('manual-quiz').value.trim().toUpperCase();
+  const msg  = document.getElementById('manual-msg');
+  msg.className = 'msg';
+  if (!key)  { msg.textContent = 'Enter your admin key first.';   msg.classList.add('show','err'); return; }
+  if (!quiz) { msg.textContent = 'Enter a Quiz_ID first.';        msg.classList.add('show','err'); return; }
+  try {
+    const d = await apiPost({ action:'set_quiz_status', quiz, active, admin:'K.P. Singh', key });
+    msg.textContent = `${d.quiz} is now ${d.active ? 'ACTIVE' : 'INACTIVE'}.`;
+    msg.classList.add('show','ok');
+    loadStatusList();
+  } catch(e) {
+    msg.textContent = e.message;
+    msg.classList.add('show','err');
+  }
+}
+</script>
+</body>
+</html>
