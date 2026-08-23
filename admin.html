@@ -181,7 +181,8 @@ tr:last-child td { border-bottom:none; }
 
   <div class="key-bar">
     <label for="admin-key">Admin key</label>
-    <input id="admin-key" type="password" placeholder="ENTER YOUR API KEY" autocomplete="off">
+    <input id="admin-key" type="password" placeholder="ENTER YOUR API KEY" autocomplete="new-password" name="sgif-admin-key-not-a-login" spellcheck="false">
+    <button class="btn ghost" type="button" onclick="toggleKeyVisibility()" id="key-toggle" style="border-color:var(--line);color:var(--ink-soft);background:#fff;">Show</button>
     <button class="btn ghost" onclick="loadStatusList()">Unlock &amp; load →</button>
     <div class="key-note">Not saved anywhere — you'll re-enter it each time you open this page. Get it from K.P. directly, never over a group chat.</div>
   </div>
@@ -221,6 +222,14 @@ function esc(s) {
 }
 
 function getKey() { return document.getElementById('admin-key').value.trim(); }
+
+function toggleKeyVisibility() {
+  const input = document.getElementById('admin-key');
+  const btn = document.getElementById('key-toggle');
+  const showing = input.type === 'text';
+  input.type = showing ? 'password' : 'text';
+  btn.textContent = showing ? 'Show' : 'Hide';
+}
 
 function friendlyApiError(j) {
   const code = j.errors && j.errors[0] && j.errors[0].code;
