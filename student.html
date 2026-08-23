@@ -86,8 +86,23 @@ h1 em { font-style:italic; color:var(--accent); }
 .msg.show { display:block; }
 .msg.err { background:var(--rose-pale); color:var(--rose); border-left:3px solid var(--rose); }
 
-#result { display:none; }
+#result { display:none; position:relative; }
 #result.show { display:block; }
+
+/* SAMPLE PASSPORT PREVIEW */
+.watermark-overlay {
+  display:none; position:absolute; inset:0; z-index:5; pointer-events:none;
+  background-repeat:repeat; opacity:.9;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='230' height='150'><text x='-10' y='90' font-family='DM Sans,sans-serif' font-size='26' font-weight='700' fill='rgba(220,38,38,0.15)' transform='rotate(-24 115 75)'>SAMPLE</text></svg>");
+}
+.sample-note {
+  display:none; background:var(--amber-pale); border:1px solid var(--amber);
+  border-radius:var(--radius-lg); padding:14px 18px; margin-bottom:16px;
+  font-size:13px; color:#78350f;
+}
+.sample-note b { color:var(--amber); }
+.sample-note a { color:var(--accent-deep); font-weight:600; text-decoration:none; }
+.sample-note a:hover { text-decoration:underline; }
 
 /* PASSPORT HEADER */
 .passport-head {
@@ -196,6 +211,10 @@ h1 em { font-style:italic; color:var(--accent); }
   <div id="spinner-wrap"></div>
 
   <div id="result">
+    <div class="sample-note" id="sample-note">
+      <b>⚠ Sample preview</b> — built from your roster record only. You haven't played an event yet, so nothing below is a real score. <a href="events.html">Play League Opener to start your real passport →</a>
+    </div>
+    <div class="watermark-overlay" id="watermark-overlay"></div>
     <div class="passport-head">
       <div>
         <div class="ph-name" id="ph-name">—</div>
@@ -273,6 +292,11 @@ async function lookup() {
   const btn  = document.getElementById('lookup-btn');
   const result = document.getElementById('result');
   msg.className = 'msg'; result.classList.remove('show');
+  document.getElementById('sample-note').style.display = 'none';
+  document.getElementById('watermark-overlay').style.display = 'none';
+  ['trend-card','topics-card','calib-card','ala-card','attempts-card','regs-card'].forEach(id => {
+    document.getElementById(id).style.display = 'none';
+  });
 
   if (!roll) {
     msg.textContent = 'Enter your roll number first.';
@@ -293,6 +317,12 @@ async function lookup() {
   btn.disabled = false; btn.textContent = 'View my passport →';
 
   if (!profileRes.success) {
+    const rosterRes = await apiGet({ action:'roster_lookup', roll });
+    if (rosterRes.success && rosterRes.data && rosterRes.data.found) {
+      renderSamplePassport(rosterRes.data);
+      result.classList.add('show');
+      return;
+    }
     msg.textContent = profileRes.message || 'No record found for this roll number yet — play your first event to start your passport.';
     msg.classList.add('show','err');
     return;
@@ -353,6 +383,35 @@ function renderProfile(p) {
       <div class="calib-item"><div class="calib-num" style="color:var(--rose)">${c.overconfidentItems}</div><div class="calib-lbl">Sure — but wrong</div></div>
       <div class="calib-item"><div class="calib-num" style="color:var(--green)">${c.underconfidentItems}</div><div class="calib-lbl">Unsure — but right</div></div>`;
   }
+}
+
+function renderSamplePassport(r) {
+  document.getElementById('sample-note').style.display = 'block';
+  document.getElementById('watermark-overlay').style.display = 'block';
+
+  document.getElementById('ph-name').textContent = r.name || r.roll;
+  document.getElementById('ph-meta').textContent =
+    [r.roll, r.branch, r.section ? 'Sec '+r.section : '', r.semester ? 'Sem '+r.semester : ''].filter(Boolean).join(' · ');
+  document.getElementById('ph-badge').textContent = 'SAMPLE PREVIEW';
+
+  document.getElementById('metrics').innerHTML = `
+    <div class="metric-card"><div class="metric-val">3</div><div class="metric-lbl">Attempts</div></div>
+    <div class="metric-card"><div class="metric-val">71%</div><div class="metric-lbl">Average score</div></div>
+    <div class="metric-card"><div class="metric-val">88%</div><div class="metric-lbl">Best score</div></div>
+    <div class="metric-card"><div class="metric-val">A</div><div class="metric-lbl">Best grade</div></div>`;
+
+  document.getElementById('trend-card').style.display = '';
+  document.getElementById('spark-wrap').innerHTML = sparklineSvg([54, 68, 71]);
+
+  document.getElementById('topics-card').style.display = '';
+  document.getElementById('topics-body').innerHTML = [
+    ['Arrays & Strings', 58], ['DBMS Joins', 66], ['Aptitude — Time & Work', 74]
+  ].map(([tag,pct]) => `
+    <div class="topic-row">
+      <div class="topic-name">${esc(tag)}</div>
+      <div class="topic-bar-track"><div class="topic-bar-fill" style="width:${pct}%;background:${pctColor(pct)}"></div></div>
+      <div class="topic-pct">${pct}%</div>
+    </div>`).join('');
 }
 
 function renderAla(a) {
