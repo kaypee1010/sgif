@@ -124,6 +124,10 @@ tr:last-child td { border-bottom:none; }
 .row-actions .act-deactivate:hover { background:var(--rose); color:#fff; }
 .row-actions .act-activate { background:#fff; color:var(--green); border-color:var(--green); }
 .row-actions .act-activate:hover { background:var(--green); color:#fff; }
+.row-actions .act-release { background:#fff; color:#8a6d3f; border-color:#b08d57; }
+.row-actions .act-release:hover { background:#b08d57; color:#fff; }
+.row-actions .act-release:disabled { opacity:.4; cursor:not-allowed; }
+.row-actions .act-release:disabled:hover { background:#fff; color:#8a6d3f; }
 
 .spinner { width:26px; height:26px; border:3px solid var(--line); border-top-color:var(--accent); border-radius:50%; animation:spin .8s linear infinite; margin:36px auto; }
 @keyframes spin { to { transform:rotate(360deg); } }
@@ -218,19 +222,32 @@ function esc(s) {
 
 function getKey() { return document.getElementById('admin-key').value.trim(); }
 
+function friendlyApiError(j) {
+  const code = j.errors && j.errors[0] && j.errors[0].code;
+  const msg  = j.message || 'Request failed';
+  const err  = new Error(msg);
+  err.code = code;
+  if (code === 'ERR-004' && /unknown action/i.test(msg)) {
+    err.friendly = 'This deployment is running an older script version — it doesn\'t know these admin endpoints yet. Paste the latest code.gs into the Apps Script editor, then Deploy → Manage deployments → New version (keep the same URL). This is not a wrong key.';
+  } else if (code === 'ERR-003') {
+    err.friendly = 'Admin key is incorrect (or blank) — check the api_key row in the Config tab and re-enter it above.';
+  }
+  return err;
+}
+
 async function apiGet(params) {
   const qs  = Object.entries(params).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
   const url = API_URL + (API_URL.includes('?')?'&':'?') + qs;
   const res = await fetch(url);
   const j   = await res.json();
-  if (!j.success) throw new Error(j.message || 'Request failed');
+  if (!j.success) throw friendlyApiError(j);
   return j.data;
 }
 
 async function apiPost(payload) {
   const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(payload) });
   const j   = await res.json();
-  if (!j.success) throw new Error(j.message || 'Request failed');
+  if (!j.success) throw friendlyApiError(j);
   return j.data;
 }
 
@@ -251,12 +268,12 @@ async function loadStatusList() {
     wrap.innerHTML = `
       <table>
         <thead><tr>
-          <th>Quiz_ID</th><th>Status</th><th>Attempts</th><th>Cohort</th><th>Last seen</th><th>Updated</th><th></th>
+          <th>Quiz_ID</th><th>Status</th><th>Attempts</th><th>Cohort</th><th>Last seen</th><th>Updated</th><th></th><th>Scorecards</th>
         </tr></thead>
         <tbody>${list.map(rowHtml).join('')}</tbody>
       </table>`;
   } catch(e) {
-    wrap.innerHTML = `<div class="empty">Could not load — ${esc(e.message)}</div>`;
+    wrap.innerHTML = `<div class="empty">Could not load — ${esc(e.friendly || e.message)}</div>`;
   }
 }
 
@@ -278,7 +295,33 @@ function rowHtml(o) {
             : `<button class="act-activate" onclick="toggleRow('${esc(o.quiz)}', true)">Activate</button>`}
         </div>
       </td>
+      <td data-label="Scorecards">
+        <div class="row-actions" style="flex-direction:column;align-items:flex-start;gap:4px;">
+          <button class="act-release" ${o.attempts<1?'disabled title="No attempts yet"':''}
+            onclick="releaseScorecards('${esc(o.quiz)}', ${o.attempts}, ${o.scorecardsSent>0})">
+            ${o.scorecardsSent>0 ? 'Re-send Scorecards' : 'Release Scorecards'}
+          </button>
+          ${o.scorecardsSent>0
+            ? `<span class="meta">Sent ${o.scorecardsSent}/${o.attempts}${o.scorecardsReleasedOn?' · '+new Date(o.scorecardsReleasedOn).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''}</span>`
+            : ''}
+        </div>
+      </td>
     </tr>`;
+}
+
+async function releaseScorecards(quiz, attempts, alreadyReleased) {
+  const key = getKey();
+  if (!key) { alert('Enter your admin key first.'); return; }
+  const verb = alreadyReleased ? 're-send' : 'send';
+  if (!confirm(`This will ${verb} personalised final-scorecard emails to up to ${attempts} participant(s) of ${quiz}. Already-emailed students are skipped automatically unless this is a re-send. Continue?`)) return;
+  const force = alreadyReleased && confirm('Re-send to EVERYONE again, including students already emailed? Cancel to only email students who haven\'t received one yet.');
+  try {
+    const d = await apiPost({ action:'release_scorecards', quiz, key, admin:'K.P. Singh', force });
+    alert(`${quiz}: sent ${d.sent}, already sent ${d.alreadySent}, no email on file ${d.noEmail}, failed ${d.failed}${d.quotaStopped?`, stopped early — Gmail daily quota reached (${d.quotaStopped} left for next run)`:''}.`);
+    loadStatusList();
+  } catch(e) {
+    alert(e.friendly || e.message);
+  }
 }
 
 async function toggleRow(quiz, active) {
@@ -289,7 +332,7 @@ async function toggleRow(quiz, active) {
     await apiPost({ action:'set_quiz_status', quiz, active, admin:'K.P. Singh', key });
     loadStatusList();
   } catch(e) {
-    alert(e.message);
+    alert(e.friendly || e.message);
   }
 }
 
@@ -306,7 +349,7 @@ async function manualSet(active) {
     msg.classList.add('show','ok');
     loadStatusList();
   } catch(e) {
-    msg.textContent = e.message;
+    msg.textContent = e.friendly || e.message;
     msg.classList.add('show','err');
   }
 }
