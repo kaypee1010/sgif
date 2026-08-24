@@ -146,11 +146,29 @@ h1 em { font-style:italic; color:var(--accent); }
 .calib-lbl { font-size:12px; color:var(--ink-soft); margin-top:2px; }
 
 /* TIMELINE / ATTEMPTS */
-.tl-row { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--line); }
-.tl-row:last-child { border-bottom:none; }
+.tl-item { border-bottom:1px solid var(--line); }
+.tl-item:last-child { border-bottom:none; }
+.tl-row { display:flex; align-items:center; gap:14px; padding:12px 0; cursor:pointer; user-select:none; }
+.tl-row:hover .tl-quiz { color:var(--accent); }
 .tl-dot { width:10px; height:10px; border-radius:50%; background:var(--accent); flex-shrink:0; }
 .tl-info { flex:1; }
-.tl-quiz { font-weight:700; font-size:14px; }
+.tl-quiz { font-weight:700; font-size:14px; transition:color .15s; }
+.tl-chevron { flex-shrink:0; color:var(--ink-soft); font-size:12px; transition:transform .15s; width:14px; text-align:center; }
+.tl-chevron.open { transform:rotate(180deg); }
+
+/* PER-EVENT SCORECARD (expanded detail under a timeline row) */
+.tl-detail { padding:4px 0 18px 24px; }
+.ev-headline { font-family:'DM Serif Display',serif; font-style:italic; font-size:13.5px; color:var(--accent-deep); margin-bottom:14px; line-height:1.5; }
+.ev-chip-row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.ev-chip { background:var(--cream); border:1px solid var(--line); border-radius:10px; padding:9px 16px; text-align:center; }
+.ev-chip .n { font-family:'DM Serif Display',serif; font-size:17px; color:var(--accent); }
+.ev-chip .l { font-family:var(--mono); font-size:9px; text-transform:uppercase; color:var(--ink-soft); margin-top:2px; }
+.ev-compare { font-size:12px; color:var(--ink-soft); margin-bottom:14px; }
+.ev-compare .status { font-family:var(--mono); font-size:9.5px; font-weight:700; text-transform:uppercase; padding:2px 8px; border-radius:8px; margin-left:6px; }
+.ev-compare .status.final { background:var(--green-pale); color:var(--green); }
+.ev-compare .status.provisional { background:var(--amber-pale); color:var(--amber); }
+.ev-sub { font-family:var(--mono); font-size:10px; text-transform:uppercase; color:var(--ink-soft); margin:14px 0 8px; letter-spacing:.04em; }
+.ev-empty { font-size:12.5px; color:var(--ink-soft); padding:8px 0; }
 .tl-date { font-family:var(--mono); font-size:10.5px; color:var(--ink-soft); }
 .tl-score { text-align:right; flex-shrink:0; }
 .tl-pct { font-family:'DM Serif Display',serif; font-size:19px; color:var(--accent); }
@@ -158,6 +176,7 @@ h1 em { font-style:italic; color:var(--accent); }
 
 /* SPARKLINE */
 .spark-wrap { margin-bottom:18px; }
+.trend-empty { background:var(--cream); border-radius:10px; padding:22px; text-align:center; color:var(--ink-soft); font-size:13px; margin-bottom:4px; }
 
 /* ALA CARD */
 .ala-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
@@ -348,21 +367,33 @@ function renderProfile(p) {
 
   if (p.attempts && p.attempts.length) {
     document.getElementById('trend-card').style.display = '';
-    document.getElementById('spark-wrap').innerHTML = sparklineSvg(p.attempts.map(a => a.pct));
+    if (p.attempts.length >= 2) {
+      document.getElementById('spark-wrap').innerHTML = sparklineSvg(p.attempts.map(a => a.pct));
+    } else {
+      document.getElementById('spark-wrap').innerHTML =
+        '<div class="trend-empty">Play your next event to start seeing your growth trend — one attempt alone can\'t show a trend yet, but your first scorecard is ready below. 👇</div>';
+    }
 
     document.getElementById('attempts-card').style.display = '';
-    document.getElementById('attempts-body').innerHTML = p.attempts.slice().reverse().map(a => `
-      <div class="tl-row">
-        <div class="tl-dot" style="background:${pctColor(a.pct)}"></div>
-        <div class="tl-info">
-          <div class="tl-quiz">${esc(a.quiz)}</div>
-          <div class="tl-date">${a.date ? new Date(a.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : ''}${a.mode?' · '+esc(a.mode):''}</div>
+    document.getElementById('attempts-body').innerHTML = p.attempts.slice().reverse().map((a, i) => {
+      const rid = 'ev-' + i;
+      return `
+      <div class="tl-item">
+        <div class="tl-row" onclick="toggleEventDetail('${rid}')">
+          <div class="tl-dot" style="background:${pctColor(a.pct)}"></div>
+          <div class="tl-info">
+            <div class="tl-quiz">${esc(a.quiz)}</div>
+            <div class="tl-date">${a.date ? new Date(a.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : ''}${a.mode?' · '+esc(a.mode):''}</div>
+          </div>
+          <div class="tl-score">
+            <div class="tl-pct">${a.pct}%</div>
+            <div class="tl-grade">Grade ${esc(a.grade)}</div>
+          </div>
+          <div class="tl-chevron" id="${rid}-chev">▾</div>
         </div>
-        <div class="tl-score">
-          <div class="tl-pct">${a.pct}%</div>
-          <div class="tl-grade">Grade ${esc(a.grade)}</div>
-        </div>
-      </div>`).join('');
+        <div class="tl-detail" id="${rid}" style="display:none">${renderEventDetail(a)}</div>
+      </div>`;
+    }).join('');
   }
 
   if (p.topics && p.topics.length) {
@@ -383,6 +414,57 @@ function renderProfile(p) {
       <div class="calib-item"><div class="calib-num" style="color:var(--rose)">${c.overconfidentItems}</div><div class="calib-lbl">Sure — but wrong</div></div>
       <div class="calib-item"><div class="calib-num" style="color:var(--green)">${c.underconfidentItems}</div><div class="calib-lbl">Unsure — but right</div></div>`;
   }
+}
+
+function toggleEventDetail(rid) {
+  const el = document.getElementById(rid);
+  const chev = document.getElementById(rid + '-chev');
+  const showing = el.style.display !== 'none';
+  el.style.display = showing ? 'none' : 'block';
+  chev.classList.toggle('open', !showing);
+}
+
+/* Per-event scorecard — rank/percentile/topic mastery/calibration for THIS
+   specific attempt, distinct from the pooled-across-everything numbers
+   above. Powered by a.scorecard, computed server-side in buildProfile_. */
+function renderEventDetail(a) {
+  const sc = a.scorecard;
+  if (!sc) return '<div class="ev-empty">Scorecard not available for this attempt.</div>';
+
+  const statusClass = sc.status === 'FINAL' ? 'final' : 'provisional';
+  const statusLabel = sc.status === 'FINAL' ? 'Final' : 'Provisional — still updating';
+
+  const headline = sc.headline ? `<div class="ev-headline">${esc(sc.headline)}</div>` : '';
+
+  const topics = (sc.tagScores && sc.tagScores.length) ? `
+    <div class="ev-sub">Topic mastery — this event</div>
+    ${sc.tagScores.map(t => `
+      <div class="topic-row">
+        <div class="topic-name">${esc(t.tag)}</div>
+        <div class="topic-bar-track"><div class="topic-bar-fill" style="width:${t.pct}%;background:${pctColor(t.pct)}"></div></div>
+        <div class="topic-pct">${t.pct}%</div>
+      </div>`).join('')}` : '';
+
+  const focus = sc.focusAreas ? `<div class="ev-empty" style="color:var(--rose)">Focus areas: ${esc(sc.focusAreas)}</div>` : '';
+
+  const calib = (sc.calibration && (sc.calibration.verySureCorrect + sc.calibration.verySureWrong + sc.calibration.notSureCorrect) > 0) ? `
+    <div class="ev-sub">Confidence calibration — this event</div>
+    <div class="calib-grid">
+      <div class="calib-item"><div class="calib-num" style="color:var(--green)">${sc.calibration.verySureCorrect}</div><div class="calib-lbl">Sure — and right</div></div>
+      <div class="calib-item"><div class="calib-num" style="color:var(--rose)">${sc.calibration.verySureWrong}</div><div class="calib-lbl">Sure — but wrong</div></div>
+      <div class="calib-item"><div class="calib-num" style="color:var(--violet)">${sc.calibration.notSureCorrect}</div><div class="calib-lbl">Unsure — but right</div></div>
+    </div>` : '';
+
+  return `
+    ${headline}
+    <div class="ev-chip-row">
+      <div class="ev-chip"><div class="n">${sc.rank}/${sc.totalParticipants}</div><div class="l">Rank</div></div>
+      <div class="ev-chip"><div class="n">${sc.percentile}th</div><div class="l">Percentile</div></div>
+    </div>
+    <div class="ev-compare">Topper ${sc.topperPercentage}% · Cohort avg ${sc.cohortAveragePercentage}%<span class="status ${statusClass}">${statusLabel}</span></div>
+    ${focus}
+    ${topics}
+    ${calib}`;
 }
 
 function renderSamplePassport(r) {
