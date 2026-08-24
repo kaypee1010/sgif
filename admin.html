@@ -66,6 +66,13 @@ h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:30px; marg
   font-size:13px; color:#881337; line-height:1.55;
 }
 .warn-strip b { color:var(--rose); }
+.warn-strip .wtitle { font-size:13.5px; margin-bottom:10px; }
+.warn-row { display:flex; gap:10px; align-items:baseline; padding:5px 0; border-top:1px dashed #fda4af; }
+.warn-row:first-of-type { border-top:none; }
+.warn-when { width:230px; flex-shrink:0; font-weight:600; }
+.warn-arrow { flex-shrink:0; color:#fb7185; }
+.warn-use { font-family:var(--mono); font-size:11.5px; font-weight:700; }
+@media(max-width:640px){ .warn-row{flex-direction:column;gap:2px;} .warn-when{width:auto;} }
 
 /* KEY BAR */
 .key-bar {
@@ -174,8 +181,23 @@ tr:last-child td { border-bottom:none; }
 
   <div class="warn-strip">
     <div>⚠️</div>
-    <div>
-      <b>This is a kill switch, not registration control.</b> It has nothing to do with the Activities sheet's Status column or seat capacity — it only controls whether a running quiz page keeps accepting answers. Use it when something needs to stop right now (wrong question bank, a leak, a technical issue) — not for normal open/close scheduling, which the Activities tab already handles via Reg Start/End and Event Start/End.
+    <div style="flex:1">
+      <div class="wtitle"><b>This is a kill switch, not registration control.</b> When to use which:</div>
+      <div class="warn-row">
+        <div class="warn-when">Opening registration for the event</div>
+        <div class="warn-arrow">→</div>
+        <div class="warn-use">Activities tab · Reg Start/End, Status, Capacity</div>
+      </div>
+      <div class="warn-row">
+        <div class="warn-when">Opening/closing the quiz on schedule</div>
+        <div class="warn-arrow">→</div>
+        <div class="warn-use">Activities tab · Event Start/End</div>
+      </div>
+      <div class="warn-row">
+        <div class="warn-when">Something's wrong, stop the quiz right now (leak, wrong questions, bug)</div>
+        <div class="warn-arrow">→</div>
+        <div class="warn-use">This page · Deactivate</div>
+      </div>
     </div>
   </div>
 
